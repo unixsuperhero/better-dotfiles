@@ -1,4 +1,6 @@
 
+export RUBYLIB="$HOME/repos/hnotes/lib:$RUBYLIB"
+
 export my_home="/Users/jearsh"
 
 ## Paths: ~/lists and ~/.listrc
