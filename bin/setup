@@ -331,11 +331,10 @@ class Dotfiles
   end
 
   def build_dir(latest=false)
-    @build_dir ||= format('%s/versions/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/latest/', pwd))
-    @build_dir ||= format('%s/versions/%s/', pwd, Time.now.to_i).tap do |bdir|
+    @build_dir ||= format('%s/versions/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/%s/', pwd, now))
+    @build_dir ||= format('%s/versions/%s/', pwd, now).tap do |bdir|
       Files.mkdir_p bdir
       latest = format('%s/versions/latest', pwd)
-      Files.rm(latest)
       Files.ln_sf(bdir, latest)
     end
   end
@@ -353,14 +352,14 @@ class Dotfiles
 
       no_dots.each do |ndot|
         dest = Files.basename ndot
-        dest = format '%s/%s', build_dir, dest
+        dest = format '%s/%s', build_dir(true), dest
 
         Files.link ndot, dest
       end
 
       Dir[format '%s/*', dotdir].each do |dot|
         dest = ?. + Files.basename(dot)
-        dest = format '%s/%s', build_dir, dest
+        dest = format '%s/%s', build_dir(true), dest
 
         Files.link dot, dest
       end
@@ -377,11 +376,10 @@ class Dotfiles
   end
 
   def backup_dir(latest=false)
-    @backup_dir ||= format('%s/versions/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/backups/latest/', pwd))
-    @backup_dir ||= format('%s/versions/backups/%s/', pwd, Time.now.to_i).tap do |bdir|
+    @backup_dir ||= format('%s/versions/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/backups/%s/', pwd, now))
+    @backup_dir ||= format('%s/versions/backups/%s/', pwd, now).tap do |bdir|
       Files.mkdir_p bdir
       latest = format('%s/versions/backups/latest', pwd)
-      Files.rm(latest)
       Files.ln_sf(bdir, latest)
     end
   end
@@ -405,9 +403,12 @@ class Dotfiles
   def install
     ensure_base_dir_is_src
     all = Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }
+    all.each do |f|
+      Files.mv(f, File.join(backup_dir(true), File.basename(f))) if File.exist?(File.join(Files.home, File.basename(f)))
+    end
     Files.cp(all, Files.home)
-      #puts %{RUNNING: 'rsync -rvzK --force --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
-      #output = `rsync -rvzK --force --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
+      #puts %{RUNNING: 'rsync -rvzK --force --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{f} #{Files.home}/'}
+      #output = `rsync -rvzK --force --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{f} #{Files.home}/`
       #puts output
     #end
   end
