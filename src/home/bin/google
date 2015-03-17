@@ -1,8 +1,12 @@
 #!/usr/bin/env ruby
 
+require 'uri'
+
+system('open', format("http://hero.dev/google/%s", URI.encode(ARGV.join(' '))))
+
+__END__
 
 require 'fileutils'
-require 'uri'
 require 'google-search'
 require 'awesome_print'
 require 'json'
@@ -35,7 +39,7 @@ end
 queries = Dir['%s/*.json' % log_dir].map{|qf|
   f = IO.read(qf)
   j = JSON.parse(f)
-  format '<a href="http://localhost:3000/google/%s" onclick="javascript:void(0);">%s</a><br/>', URI.encode(j['query']), j['query']
+  format '<a href="http://hero.dev/google/%s" onclick="javascript:void(0);">%s</a><br/>', URI.encode(j['query']), j['query']
 }
 
 IO.write('/tmp/queries.html', queries.join("\n"))
