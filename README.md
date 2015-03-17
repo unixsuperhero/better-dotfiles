@@ -3,6 +3,71 @@
 
 ## Table of Contents
 
+* versions
+* plugins
+  * dir structure
+    * `<plugin>/home/`
+    * `<plugin>/home/dot/`
+    * `<plugin>/patches/`
+    * `<plugin>/scripts/` (or) `<plugin>/hooks/`
+    * `<plugin>/customizations`
+  * home
+  * home/dot
+  * patches
+  * scripts
+  * customizations
+  * scripts/hooks
+    * install
+    * setup
+
+* setup instructions
+  * setup script
+  * todo
+
+## Versions
+
+
+
+## Plugins
+
+
+### <plugin>/home/
+
+### <plugin>/home/dot/
+
+This is where dotfiles go that need to be in the `$HOME`
+directory. Make them here, but omit the leading `.` (dot)
+from the filename.
+
+These files should be generic include files, and all the real configuring should
+be done in the `<plugin>/<customization-files>`
+
+### <plugin>/<customization-file>
+
+These are the files that will be included by the files in
+`home/` and `home/dot/`
+
+### <plugin>/patches/
+
+config scripts that can be included by the other plugins
+
+### <plugin>/scripts/
+
+any install or setup scripts necessary:
+
+* install - make sure the tool/cmd is available on the machine, if not, have
+  instructions on how to install it
+* setup - any necessary actions to ensure that it is configured properly
+
+
+
+# OLD README.md IS BELOW THIS LINE
+----------------------------------
+
+# Dotfiles (by unixsuperhero)
+
+## Table of Contents
+
 * concept
 * setup instructions
   * setup script

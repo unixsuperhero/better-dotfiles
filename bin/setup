@@ -169,6 +169,7 @@ class Files
   end
 
   def self.mkdir_p(list, opts=instance.file_opts)
+    ap mkdirp_files_list: list
     instance.mkdir_p(list, opts)
   end
 
@@ -241,14 +242,11 @@ class Files
   end
 
   def link(src, dest, opts=@file_opts)
-    if directory? src
-      ln_s(src, dest, opts)
-    else
-      ln(src, dest, opts)
-    end
+    ln_s(src, dest, opts)
   end
 
   def mkdir_p(list, opts=@file_opts)
+    ap mkdir_list: list
     FileUtils.mkdir_p(list, opts)
   end
 
@@ -280,6 +278,8 @@ class Dotfiles
     @args = args
     @debug = false
     @now = Time.now.to_i
+
+    parse_options
   end
 
   def src
@@ -332,7 +332,10 @@ class Dotfiles
 
   def build
     dirs = Dir[format '%s/*/', src].reject{|dir| ignored_dirs.include? Files.basename(dir) }
+
+    ## FOR TESTING ONLY ... just using the zsh plugin
     dirs = Dir[format '%s/zsh/', src]
+
     dirs.each do |dir|
       dotdir = Files.join(dir, 'home/dot')
 
@@ -346,7 +349,7 @@ class Dotfiles
       end
 
       Dir[format '%s/*', dotdir].each do |dot|
-        dest = ?. + Files.basename dot
+        dest = ?. + Files.basename(dot)
         dest = format '%s/%s', build_dir, dest
 
         Files.link dot, dest
@@ -367,7 +370,7 @@ class Dotfiles
     @backup_dir ||= format('%s/versions/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/backups/latest/', pwd))
     @backup_dir ||= format('%s/versions/backups/%s/', pwd, Time.now.to_i).tap do |bdir|
       Files.mkdir_p bdir
-      Files.ln_sf(pwd, format('%s/versions/backups/latest', pwd))
+      Files.ln_sf(bdir, format('%s/versions/backups/latest', pwd))
     end
   end
 
@@ -390,8 +393,8 @@ class Dotfiles
   def install
     ensure_base_dir_is_src
     Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }.each do |f|
-      puts %{RUNNING: 'rsync -avzn --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
-      output = `rsync -avzn --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
+      puts %{RUNNING: 'rsync -vz --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
+      output = `rsync -vz --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
       puts output
     end
   end
