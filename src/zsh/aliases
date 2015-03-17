@@ -232,3 +232,9 @@ alias prunner="pomo_runner"
 alias plisten="pomo_listener"
 alias plistener="pomo_listener"
 
+
+# -----------------
+# actual tmux stuff
+# -----------------
+
+alias t="tmux"

@@ -1,0 +1,32 @@
+
+#SHELL=/usr/local/bin/fish
+
+
+#
+# Cron Column Explanations
+#
+# field         allowed values
+# -----         --------------
+# minute        0-59
+# hour          0-23
+# day of month  1-31
+# month         1-12 (or names: jan, feb, ...)
+# day of week   0-7 (0 or 7 is Sun, or use names)
+#
+
+LANG="en_US.UTF-8"
+
+#* * * * * source $HOME/.config/fish/config.fish; cd $HOME/repos/youtube-history; echo "LANG=$LANG"; /Users/macbookpro/.rbenv/versions/2.1.0/bin/ruby bin/extract.rb
+0 0,4,8,12,16,20 * * * cd $HOME/repos/youtube-history; echo "LANG=$LANG"; /Users/macbookpro/.rbenv/versions/2.1.0/bin/ruby bin/extract.rb
+#* 0,4,8,12,16,20 * * * source $HOME/.config/fish/config.fish; cd $HOME/repos/youtube-history; /Users/macbookpro/.rbenv/versions/2.1.0/bin/ruby bin/extract.rb
+
+# weekday reminders
+0,15,30,45 15,16,17,18 * * 1,2,3,4,5 notify -t 'daily reminders' update jira
+
+# weekend reminders
+0,15,30,45 8,9,10,11,16,17,18,19,3,4,5 * * 6,7 notify -t 'daily reminders' go thru "'task list'"
+
+
+# ping Hero Web
+0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * * MAILTO="" curl http://hero.dev/ping &>/dev/null; echo 'pinged hero.dev/ping'
+
