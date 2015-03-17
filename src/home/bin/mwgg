@@ -1,0 +1,43 @@
+#!/bin/bash
+
+clear_line() {
+  z=""
+  for b in $(seq 1 $(tput cols)); do
+    z="${z} "
+  done
+  echo "$z"
+}
+
+monitor_wget () {
+  clear
+  #while true
+  while [[ $(grep -li 'saved' wget-log* | wc -l) -lt $(ls -1 wget-log* | wc -l) ]]
+  do
+    x=0
+    for a in wget-log*
+    do
+      [[ ! -a "$a" ]] && continue
+      tput cup $x 0
+      clear_line
+      tput cup $x 0
+      line="$(printf '%-4s %-7s %-7s' $(tail "$a" | grep -o '[0-9][0-9.]*%.*' | tail -1))  $(printf '( %-11s )' $a)  $(grep 'Saving to' "$a" | tail -1 | sed 's/Saving to: //')"
+      echo "$line"
+      x=$(( $x + 1 ))
+    done
+    sleep 3
+  done
+
+  x=0
+  for a in wget-log* wipe out some extra lines
+  do
+    tput cup $x 0
+    clear_line
+    x=$(( $x + 1 ))
+  done
+  rm wget-log*
+  # say 'downloads complete'
+
+}
+
+monitor_wget
+

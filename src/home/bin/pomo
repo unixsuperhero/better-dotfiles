@@ -1,0 +1,140 @@
+#!/bin/bash
+
+function is_attached() {
+  tmux ls | grep attached &>/dev/null
+  return $?
+}
+
+function pomo_runner() {
+  is_attached && return 1
+  echo "$@" >~/.pomos/pomo_runner
+}
+
+function pomo_listener() {
+  echo "$@" >~/.pomos/pomo_commands
+}
+
+function attach_runner() {
+  is_attached && echo 'tmux is already attached' && return 1
+  echo tmux a >~/.pomos/pomo_runner
+}
+#
+#function reset_fifo() {
+#  [ -p $1 ] && echo "removing $1" && rm -v "$1"
+#  if [ ! -p $1 ]; then
+#    mkdir -pv "$(dirname "$1")"
+#    mkfifo "$1"
+#  fi
+#}
+
+pomodoro () {
+  for min in $(seq ${1:-25} 1)
+  do
+
+    [[ $(( $min % 5 )) -eq 0 ]] && say "$min minutes left" &
+    [[ $min -lt 4 && $min -ne 1 ]] && say "$min minutes left" &
+    [[ $min -eq 1 ]] && say "$min minute left" &
+
+    pomo_runner echo "$min minutes left"
+
+    echo -n "$(printf "%02d" $min) => "
+
+    for b in $(seq 1 20)
+    do
+      sleep 3
+      echo -n '.'
+    done
+
+    echo
+  done
+}
+
+case $1 in
+  (''|start)
+    pomodoro 25
+  ;;
+
+  (-e|-edit|--edit)
+    vim "$0"
+  ;;
+
+  (clear)
+    reset_fifo ~/.pomos/pomo_commands
+    reset_fifo ~/.pomos/pomo_runner
+    ;;
+
+  (run)
+    total=${2:-1}
+    sum=$(( ${2:-1} + 3 ))
+    mod=$(( $sum % 4 ))
+    start_at=$(( $mod + 1 ))
+    echo "prepping: \$1 => $1; sum(+3) => $sum; mod(%4) => $mod; start_at(+1) => $start_at"
+    while true
+    do
+      for session in $(seq ${start_at} 4)
+      do
+        echo
+        echo "Session #$total ($session)"
+
+        #pomo 2
+        pomo 25
+
+        #pomo d
+
+        echo
+        [[ $session -lt 4 ]] && pomo sb || pomo lb
+
+        #pomo a
+        say "break is over" &
+
+        total=$(( $total + 1 ))
+      done
+      start_at=1
+    done
+  ;;
+
+  (a|attach)
+    attach_runner
+    ;;
+
+  (d|detach)
+    pomo_listener tmux detach
+    ;;
+
+  (sb|short-break|short|break)
+    say "Starting a short 5 minute break"
+    pomodoro 5
+  ;;
+
+  (lb|long-break|long)
+    say "Starting a long 15 minute break"
+    pomodoro 15
+  ;;
+
+  ([0-9]*)
+    pomodoro $1
+  ;;
+
+  (*)
+    cat <<OPTIONS
+  USAGE:
+
+    pomo                # => 25m timer
+
+    pomo [0-9]+         # => timer for specified minutes
+
+    pomo sb             # => 5m timer
+    pomo short          # => 5m timer
+    pomo short-break    # => 5m timer
+    pomo break          # => 5m timer
+
+    pomo lb             # => 15m timer
+    pomo long           # => 15m timer
+    pomo long-break     # => 15m timer
+
+    pomo help           # => This help message
+
+OPTIONS
+  ;;
+
+esac

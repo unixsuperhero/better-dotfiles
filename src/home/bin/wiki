@@ -1,0 +1,43 @@
+#!/bin/bash
+
+<<"Description"
+  Script/Command to easily handle the saveology wiki.
+Description
+
+function saveology_wiki () {
+  cd "${HASHROCKET_DIR}/saveology/app/views/admins/wiki"
+
+####### [ Show usage ]
+  [ -z $1 || "$1" == "help" ] && cat <<"HELP" && return
+    USAGE: wiki (category|page):(add|remove|edit) [category_name|page_name]
+HELP
+
+####### [ Testing ]
+  [ "$1" == 'test' ] && (
+
+    saveology_wiki        page:add  add_this_page
+    saveology_wiki    category:add  add_this_category
+
+    saveology_wiki     page:remove  remove_this_page
+    saveology_wiki category:remove  remove_this_category
+
+  ) && return
+
+####### [ Execute Command ]
+  case $1 in
+    page:add)
+      echo "add page $2";;
+    page:remove)
+      echo "remove page $2";;
+    category:add)
+      echo "add category $2";;
+    category:remove)
+      echo "remove category $2";;
+    *)
+      echo "Unknown Option: $1";;
+  esac
+
+}
+
+saveology_wiki $@
+
