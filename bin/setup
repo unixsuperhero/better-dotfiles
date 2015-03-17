@@ -323,27 +323,30 @@ class Dotfiles
   end
 
   def build_dir(latest=false)
-    @build_dir ||= format('%s/tmp/builds/latest/', pwd) if latest == true && Files.exist?(format('%s/tmp/builds/latest/', pwd))
-    @build_dir ||= format('%s/tmp/builds/%s/', pwd, Time.now.to_i).tap do |bdir|
+    @build_dir ||= format('%s/versions/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/latest/', pwd))
+    @build_dir ||= format('%s/versions/%s/', pwd, Time.now.to_i).tap do |bdir|
       Files.mkdir_p bdir
-      Files.ln_sf(bdir, format('%s/tmp/builds/latest', pwd))
+      Files.ln_sf(bdir, format('%s/versions/latest', pwd))
     end
   end
 
   def build
     dirs = Dir[format '%s/*/', src].reject{|dir| ignored_dirs.include? Files.basename(dir) }
+    dirs = Dir[format '%s/zsh/', src]
     dirs.each do |dir|
-      dotdir = Files.join(dir, 'dot')
+      dotdir = Files.join(dir, 'home/dot')
 
-      no_dot = format '%s/no_dot', dotdir
+      no_dots = Dir[Files.join(dir, 'home/*')].reject{|dir| %w{ dot }.include? File.basename(dir) }
 
-      no_dots = Files.exist?(no_dot)
-      no_dots &&= IO.read(no_dot).split(/\s*\n+\s*/)
-      no_dots ||= []
+      no_dots.each do |ndot|
+        dest = Files.basename ndot
+        dest = format '%s/%s', build_dir, dest
 
-      Dir[format '%s/*', dotdir].select{|df| Files.basename(df) != 'no_dot' }.each do |dot|
-        dest = Files.basename dot
-        dest = ?. + dest unless no_dots.include? dest
+        Files.link ndot, dest
+      end
+
+      Dir[format '%s/*', dotdir].each do |dot|
+        dest = ?. + Files.basename dot
         dest = format '%s/%s', build_dir, dest
 
         Files.link dot, dest
@@ -361,10 +364,10 @@ class Dotfiles
   end
 
   def backup_dir(latest=false)
-    @backup_dir ||= format('%s/tmp/builds/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/tmp/builds/backups/latest/', pwd))
-    @backup_dir ||= format('%s/tmp/builds/backups/%s/', pwd, Time.now.to_i).tap do |bdir|
+    @backup_dir ||= format('%s/versions/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/backups/latest/', pwd))
+    @backup_dir ||= format('%s/versions/backups/%s/', pwd, Time.now.to_i).tap do |bdir|
       Files.mkdir_p bdir
-      Files.ln_sf(pwd, format('%s/tmp/builds/backups/latest', pwd))
+      Files.ln_sf(pwd, format('%s/versions/backups/latest', pwd))
     end
   end
 
