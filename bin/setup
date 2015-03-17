@@ -136,6 +136,10 @@ class Files
     instance.directory?(f)
   end
 
+  def self.cp(list, dest)
+    instance.cp(list, dest)
+  end
+
   def self.exist?(f)
     instance.exist?(f)
   end
@@ -227,6 +231,10 @@ class Files
 
   def symlink?(f)
     File.symlink?(f)
+  end
+
+  def cp(src, dest, opts=@file_opts)
+    FileUtils.cp(src, dest, opts)
   end
 
   def ln(src, dest, opts=@file_opts)
@@ -326,7 +334,9 @@ class Dotfiles
     @build_dir ||= format('%s/versions/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/latest/', pwd))
     @build_dir ||= format('%s/versions/%s/', pwd, Time.now.to_i).tap do |bdir|
       Files.mkdir_p bdir
-      Files.ln_sf(bdir, format('%s/versions/latest', pwd))
+      latest = format('%s/versions/latest', pwd)
+      Files.rm(latest)
+      Files.ln_sf(bdir, latest)
     end
   end
 
@@ -370,7 +380,9 @@ class Dotfiles
     @backup_dir ||= format('%s/versions/backups/latest/', pwd) if latest == true && Files.exist?(format('%s/versions/backups/latest/', pwd))
     @backup_dir ||= format('%s/versions/backups/%s/', pwd, Time.now.to_i).tap do |bdir|
       Files.mkdir_p bdir
-      Files.ln_sf(bdir, format('%s/versions/backups/latest', pwd))
+      latest = format('%s/versions/backups/latest', pwd)
+      Files.rm(latest)
+      Files.ln_sf(bdir, latest)
     end
   end
 
@@ -392,11 +404,12 @@ class Dotfiles
 
   def install
     ensure_base_dir_is_src
-    Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }.each do |f|
-      puts %{RUNNING: 'rsync -vz --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
-      output = `rsync -vz --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
-      puts output
-    end
+    all = Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }
+    Files.cp(all, Files.home)
+      #puts %{RUNNING: 'rsync -rvzK --force --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
+      #output = `rsync -rvzK --force --exclude "#{backup_dir(true)}" --delete --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
+      #puts output
+    #end
   end
 
   def setup
