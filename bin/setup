@@ -357,10 +357,15 @@ class Dotfiles
         Files.link ndot, dest
       end
 
-      Dir[format '%s/*', dotdir].each do |dot|
+      dots = Dir[format '%s/*', dotdir]
+
+      ap dirs: dirs, dotdir: dotdir, no_dots: no_dots, dots: dots
+
+      dots.each do |dot|
         dest = ?. + Files.basename(dot)
         dest = format '%s/%s', build_dir(true), dest
 
+        puts "dots: ln -s #{dot} -> #{dest}"
         Files.link dot, dest
       end
     end
@@ -404,7 +409,7 @@ class Dotfiles
     ensure_base_dir_is_src
     all = Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }
     all.each do |f|
-      Files.mv(f, File.join(backup_dir(true), File.basename(f))) if File.exist?(File.join(Files.home, File.basename(f)))
+      Files.mv(File.join(Files.home, File.basename(f)), File.join(backup_dir(true), File.basename(f))) if File.exist?(File.join(Files.home, File.basename(f)))
     end
     Files.cp(all, Files.home)
       #puts %{RUNNING: 'rsync -rvzK --force --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{f} #{Files.home}/'}
