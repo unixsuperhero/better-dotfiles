@@ -335,6 +335,7 @@ class Dotfiles
     @build_dir ||= format('%s/versions/%s/', pwd, now).tap do |bdir|
       Files.mkdir_p bdir
       latest = format('%s/versions/latest', pwd)
+      Files.rm(latest) if File.exist?(latest)
       Files.ln_sf(bdir, latest)
     end
   end
@@ -385,6 +386,7 @@ class Dotfiles
     @backup_dir ||= format('%s/versions/backups/%s/', pwd, now).tap do |bdir|
       Files.mkdir_p bdir
       latest = format('%s/versions/backups/latest', pwd)
+      Files.rm(latest) if File.exist?(latest)
       Files.ln_sf(bdir, latest)
     end
   end
@@ -408,14 +410,22 @@ class Dotfiles
   def install
     ensure_base_dir_is_src
     all = Dir['%s/{.,}*' % build_dir(true)].select{|f| !%w{. .. backups}.include? Files.basename(f) }
+    system("tar cvzf #{build_dir.sub(/[\/]+$/, '')}.tar.gz #{build_dir.sub(/[\/]+$/, '')}")
     all.each do |f|
-      Files.mv(File.join(Files.home, File.basename(f)), File.join(backup_dir(true), File.basename(f))) if File.exist?(File.join(Files.home, File.basename(f)))
+      puts %{RUNNING: 'rsync -avz --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/'}
+      output = `rsync -avz --backup --backup-dir="#{backup_dir(true)}" #{f} #{Files.home}/`
+      puts output
+      #Files.mv(File.join(Files.home, File.basename(f)), File.join(backup_dir(true), File.basename(f))) if File.exist?(File.join(Files.home, File.basename(f)))
     end
-    Files.cp(all, Files.home)
+    # Files.cp(all, Files.home)
       #puts %{RUNNING: 'rsync -rvzK --force --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{f} #{Files.home}/'}
       #output = `rsync -rvzK --force --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{f} #{Files.home}/`
       #puts output
     #end
+    #Files.mv(all, Files.home)
+    #puts %{RUNNING: 'rsync -rvz --links --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{build_dir}/ #{Files.home}/'}
+    #output = `rsync -rvz --links --exclude "#{backup_dir}" --delete --backup --backup-dir="#{backup_dir}" #{build_dir}/ #{Files.home}/`
+    #puts output
   end
 
   def setup
