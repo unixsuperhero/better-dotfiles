@@ -30,7 +30,6 @@ zstyle ':prezto:load' pmodule \
   'history' \
   'directory' \
   'spectrum' \
-  'utility' \
   'completion' \
   'git' \
   'ruby' \
@@ -38,6 +37,9 @@ zstyle ':prezto:load' pmodule \
   'fasd' \
   'tmux' \
   'prompt'
+
+  # REMOVED:
+  #'utility' \
 
 #
 # Editor
