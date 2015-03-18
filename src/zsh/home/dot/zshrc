@@ -7,24 +7,24 @@ source $ZDOTDIR/zshrc
 
 export DOTDIR="$HOME/dotfiles"
 
+function source_file() {
+  test -r "$1" && source "$1"
+}
+
 function include_file() {
   f="${DOTDIR:-$HOME/dotfiles}/zsh/${1}"
-
-  echo "including (${1}) ... $f"
-
-  test -f "$f" && source "$f"
+  source_file $f
 }
 
 function include_patch() {
   f="${DOTDIR:-$HOME/dotfiles}/${1}/patches/zsh/init"
-
-  echo "including (${1}) ... $f"
-
-  test -f "$f" && source "$f"
+  source_file $f
 }
 
 zsh_includes=(local aliases export functions git heroku osxrc ps1 saveology vim)
+zsh_includes=(local aliases export functions git heroku osxrc saveology vim)
 zsh_includes=(local aliases export functions git heroku osxrc saveology vim paths)
+zsh_includes=(aliases export functions git omz-git heroku osxrc saveology vim paths)
 
 for ifile in $zsh_includes
 do
@@ -43,6 +43,7 @@ done
 #$HOME/dotfiles/zsh/export
 #$HOME/dotfiles/zsh/functions
 #$HOME/dotfiles/zsh/git
+#$HOME/dotfiles/zsh/omz-git
 #$HOME/dotfiles/zsh/heroku
 #$HOME/dotfiles/zsh/local
 #$HOME/dotfiles/zsh/osxrc

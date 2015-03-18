@@ -238,3 +238,9 @@ alias plistener="pomo_listener"
 # -----------------
 
 alias t="tmux"
+
+
+# ls
+
+alias ll="ls -l"
+

@@ -21,17 +21,17 @@ prepend_path() {
   export PATH
 }
 
-for sfile in ~/.config/zsh/* ~/.config/*/zsh
-do
-  if test -d $sfile; then
-    continue
-  fi
-  if test $sfile -eq ~/.config/zsh/local; then
-    continue
-  fi
-
-  source_file $sfile
-done
+## for sfile in ~/.config/zsh/* ~/.config/*/zsh
+## do
+##   if test -d $sfile; then
+##     continue
+##   fi
+##   if test $sfile -eq ~/.config/zsh/local; then
+##     continue
+##   fi
+## 
+##   source_file $sfile
+## done
 
 ## ## My custom bash environment
 ## source_file "$HOME/.osxrc"
