@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function start_hero() {
+
+  tmux a -t hero && return
+
+  tmux new -d -s hero -n notes -c ~/notes
+  tmux neww -d -n hero -c ~/repos/hero
+  tmux neww -d -n docs -c ~/repos/hero-docs
+
+  tmux a -t hero
+}
+
+start_hero
+

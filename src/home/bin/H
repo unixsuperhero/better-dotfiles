@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+args = ARGV.dup
+cmd = args.shift
+
+case cmd
+when 'cd'  # an idea, since scripts are run in subcommands and don't change directories
+  puts Dir.pwd
+  cd_cmd = format "cd '%s'", args.shift
+  system(format '%s -c "%s; %s"', ENV['SHELL'], cd_cmd, ENV['SHELL'])
+  puts Dir.pwd
+
+when 'cdtest'
+  puts Dir.pwd
+  puts Dir.chdir '/Users/macbookpro/repos/hnotes'
+  puts Dir.pwd
+
+else
+  puts 'unknown command'
+
+end
