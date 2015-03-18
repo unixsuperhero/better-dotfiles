@@ -5,29 +5,11 @@
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
-echo
-echo 'in file: /Users/macbookpro/dotfiles/zsh/prezto/zshrc'
-echo 'in file: /Users/macbookpro/dotfiles/zsh/prezto/zshrc'
-echo 'in file: /Users/macbookpro/dotfiles/zsh/prezto/zshrc'
-echo "{ZDOTDIR:-HOME}/init.zsh: ${ZDOTDIR:-$HOME}/init.zsh"
-echo
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/init.zsh" ]]; then
-  echo 'sourcing: zsh/prezto/init.zsh'
   source "${ZDOTDIR:-$HOME}/init.zsh"
 fi
 
 # Customize to your needs...
-
-cat <<"END" >/dev/null
--rw-r--r--  1 macbookpro  staff  59 Mar 13 14:55 /Users/macbookpro/.zshrc
-ls -ld ~/.z*
-lrwxr-xr-x  1 macbookpro  staff  58 Dec 19 04:18 /Users/macbookpro/.zfunctions -> /Users/macbookpro/repos/dot-files/pure-zsh/home/zfunctions
--rw-r--r--  1 macbookpro  staff  60 Mar 13 14:59 /Users/macbookpro/.zlogin
--rw-r--r--  1 macbookpro  staff  61 Mar 13 14:56 /Users/macbookpro/.zlogout
--rw-r--r--  1 macbookpro  staff  62 Mar 13 14:55 /Users/macbookpro/.zprofile
--rw-r--r--  1 macbookpro  staff  60 Mar 13 14:55 /Users/macbookpro/.zshenv
--rw-r--r--  1 macbookpro  staff  59 Mar 13 14:55 /Users/macbookpro/.zshrc
-END
 
