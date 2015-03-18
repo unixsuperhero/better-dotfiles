@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function is_attached() {
-  tmux ls | grep attached &>/dev/null
+  tmux ls | grep '^bea:.*attached' &>/dev/null
   return $?
 }
 
@@ -16,7 +16,7 @@ function pomo_listener() {
 
 function attach_runner() {
   is_attached && echo 'tmux is already attached' && return 1
-  echo tmux a >~/.pomos/pomo_runner
+  echo tmux a -t bea >~/.pomos/pomo_runner
 }
 #
 #function reset_fifo() {
@@ -31,9 +31,9 @@ pomodoro () {
   for min in $(seq ${1:-25} 1)
   do
 
-    [[ $(( $min % 5 )) -eq 0 ]] && say "$min minutes left" &
-    [[ $min -lt 4 && $min -ne 1 ]] && say "$min minutes left" &
-    [[ $min -eq 1 ]] && say "$min minute left" &
+    [[ $(( $min % 5 )) -eq 0 ]] && say -v Alex "$min minutes left" &
+    [[ $min -lt 4 && $min -ne 1 ]] && say -v Alex "$min minutes left" &
+    [[ $min -eq 1 ]] && say -v Alex "$min minute left" &
 
     pomo_runner echo "$min minutes left"
 
@@ -85,7 +85,7 @@ case $1 in
         [[ $session -lt 4 ]] && pomo sb || pomo lb
 
         #pomo a
-        say "break is over" &
+        say -v Alex "break is over" &
 
         total=$(( $total + 1 ))
       done
@@ -98,16 +98,16 @@ case $1 in
     ;;
 
   (d|detach)
-    pomo_listener tmux detach
+    pomo_listener tmux detach -t bea
     ;;
 
   (sb|short-break|short|break)
-    say "Starting a short 5 minute break"
+    say -v Alex "Starting a short 5 minute break"
     pomodoro 5
   ;;
 
   (lb|long-break|long)
-    say "Starting a long 15 minute break"
+    say -v Alex "Starting a long 15 minute break"
     pomodoro 15
   ;;
 

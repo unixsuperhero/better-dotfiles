@@ -1,18 +1,22 @@
-#!/usr/local/bin/fish
+#!/bin/bash
 
-cd /Users/macbookpro/htags/repos
+function new_bea_session() {
+  tmux split-window -c "$1" -t bea:0 test_listener
+  tmux resize-pane -c "$1" -D -t bea:0.1 10
+  tmux split-window -c "$1" -h -t bea:0
+  tmux neww -d -c "$1" -t bea:1 pomo
+  tmux a -t bea
+}
 
-switch ( echo $argv[1] )
-  case ''
-    cd work/beautified
-    tmux new -d -s bea; and begin
-      tmux split-window -t bea:0 test_listener
-      tmux resize-pane -D -t bea:0.1 10
-      tmux split-window -h -t bea:0
+case $1 in
+  ('')
+    tmux new -d -s bea -c "$HOME/beautified" &&
+      new_bea_session "$HOME/beautified" ||
       tmux a -t bea
-    end
-    or tmux a -t bea
     ;;
-  case '*'
-    tmux $argv -t bea
-end
+  (*)
+    tmux new -d -s bea -c "$1" &&
+      new_bea_session "$1" ||
+      tmux a -t bea
+    ;;
+esac
