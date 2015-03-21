@@ -1,7 +1,17 @@
+
+" tmp/vimrc
+
+" tmp/vimrc.local
+
+" tmp/vimrc.josh
+
+syntax on                                         " Turn syntax highlighting on
+
 hi SignColumn  term=standout ctermfg=4 ctermbg=black guifg=DarkBlue guibg=black
+
 hi def link markdownCode           Statement
 hi def link markdownCodeDelimiter  Statement
-hi! link fsize Directory      "cterm=none ctermfg=4 ctermbg=Black
+
 hi flink cterm=none ctermfg=3 ctermbg=0
 hi fRedCheck cterm=standout ctermfg=Red ctermbg=Black
 hi fchecked cterm=bold ctermfg=2 ctermbg=0
@@ -9,6 +19,7 @@ hi funchecked cterm=bold ctermfg=1 ctermbg=0
 hi fother cterm=bold ctermfg=3 ctermbg=0
 hi ftime cterm=none ctermfg=Green ctermbg=Black
 hi j cterm=none ctermfg=White ctermbg=Cyan
+
   hi listOpen cterm=none ctermfg=1 ctermbg=0
   hi listSmX cterm=bold ctermfg=2 ctermbg=0
   hi listX cterm=none ctermfg=0 ctermbg=1
@@ -27,6 +38,7 @@ hi j cterm=none ctermfg=White ctermbg=Cyan
   hi listM12 cterm=none ctermfg=5 ctermbg=0
   hi listM13 cterm=none ctermfg=white ctermbg=0
   hi listM14 cterm=none ctermfg=lightblue ctermbg=white
+
   syn keyword listOpen listOpen
   syn keyword listSmX listSmX
   syn keyword listX listX
@@ -45,6 +57,7 @@ hi j cterm=none ctermfg=White ctermbg=Cyan
   syn keyword listM12 listM12
   syn keyword listM13 listM13
   syn keyword listM14 listM14
+
 hi LineNr cterm=none ctermfg=Red ctermbg=Black
 hi IncSearch cterm=none ctermfg=White ctermbg=Cyan
 hi Search cterm=none ctermfg=White ctermbg=Cyan
@@ -58,10 +71,12 @@ hi PreProc ctermfg=4
 hi SpecialKey ctermfg=5
 hi NonText ctermfg=3
 hi Underlined ctermfg=2
+
 hi link a ErrorMsg
 hi link b StatusLine
 hi link c Search
 hi link d DiffChange
+
 hi popMatch1 cterm=none ctermfg=0 ctermbg=1
 hi popMatch2 cterm=none ctermfg=0 ctermbg=6
 hi popMatch3 cterm=none ctermfg=0 ctermbg=White
@@ -72,7 +87,9 @@ hi popMatch7 cterm=none ctermfg=0 ctermbg=5
 hi popMatch8 cterm=none ctermfg=0 ctermbg=2
 hi popMatch9 cterm=reverse ctermfg=white ctermbg=0
 hi popMatch10 cterm=reverse ctermfg=lightblue ctermbg=white
+
 hi Visual term=reverse cterm=reverse guibg=LightGrey
+
   syn match listM09  /[0-9 ]\?[0-9. ]\?[0-9][BKMG]/
   syn match listM09  /\[[^[\]]*\]/
   syn match listNS   /\[\[\[.*\]\]\]/
@@ -83,3 +100,5 @@ hi Visual term=reverse cterm=reverse guibg=LightGrey
   syn match listSmX  /(josh @ [^)]\+)/
   syn match listSmX  /((.*))/
   syn match listTime /\d\d\d\d-\d\d-\d\d ..:..:../
+
+

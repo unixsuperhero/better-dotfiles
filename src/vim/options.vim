@@ -1,19 +1,27 @@
+
+
+" tmp/vimrc
+
 set visualbell
+
 set wildmenu
 set wildmode=list:longest,full
+
 set splitright
 set splitbelow
+
 set hidden
+
 set guifont=Monaco:h16
 set guioptions-=T guioptions-=e guioptions-=L guioptions-=r
 set shell=bash
 
-
+" tmp/vimrc.local
 
 set nowrap splitright splitbelow
 set t_Co=256
 
-
+" tmp/vimrc.josh
 
 set nolist                                        " (Show/Don't Show) special characters represententing whitespace
 set nostartofline                                 " I have no ideal what this does right now....
@@ -53,12 +61,15 @@ set viminfo='200,\"100,/9000,:9000,n~/.viminfo    " Remember things between sess
 set backupskip=/tmp/*,/private/tmp/*"
 set diffopt=filler,iwhite,vertical
 set switchbuf=useopen,split
+
 set spellfile=~/.vim/words.utf8.add
 set formatprg=par\ -w60re
 
-if has('persistent_undo')
   set undofile
   set undodir=~/.vim/tmp//,~/.vim/undo_files//,~/.vim//,/tmp//
-endif
+
+  set filetype=lists syntax=lists
 
 set nolist                                        " (Show/Don't Show) special characters represententing whitespace
+
+

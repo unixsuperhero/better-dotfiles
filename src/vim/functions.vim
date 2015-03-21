@@ -1,11 +1,23 @@
 
-" Grep only within the files that are open in vim
-command! -nargs=* Jgrep :silent bufdo vimgrepadd <args> %
-ca jgrep Jgrep
+" tmp/vimrc
 
-" Other peoples' handy stuff
-" <leader> is '\' by default
-nmap <leader>z :call <SID>SynStack()<CR>
+
+
+
+
+
+
+
+
+
+" tmp/vimrc.local
+
+
+
+command! -nargs=* Jgrep :silent bufdo vimgrepadd <args> %
+
+
+
 function! <SID>SynStack()
   if !exists("*synstack")
     return
@@ -13,14 +25,105 @@ function! <SID>SynStack()
   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunc
 
+
+
+
+" tmp/vimrc.josh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 func! Eatchar(pat)
   let c = nr2char(getchar(0))
   return (c =~ a:pat) ? '' : c
 endfunc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 func! Eatchar(pat)
   let c = nr2char(getchar(0))
   return (c =~ a:pat) ? '' : c
 endfunc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 command! -nargs=1 ReplStr exe "s/SSS/" . <q-args>
 command! -nargs=1 ChangeNick exe '%s#\v(((real|user)_name|nick) [=] ["])[^"]*(["])#\1' . <q-args> . '\4#|w'
 command! NoMatches call clearmatches()
@@ -36,10 +139,12 @@ command! -nargs=* Vb exe "vert sb " . <q-args>
 command! -nargs=+ IListPrompt call <SID>IListPrompt(<q-args>)
 command! -range -nargs=* Seq <line1>,<line2>call Sequence(<f-args>)
 command! -complete=shellcmd -complete=file -complete=dir -nargs=+ CaptureOutput call CaptureOutput(<q-args>)
+
 function! PutRecentFiles()
   r!cat /var/jearsh/env/recent.vim
   "r!cat /var/jearsh/env/recent.vim | head -15
 endfunction
+
 function! s:IListPrompt(pattern)
   let pat = a:pattern
   if strlen(pat) > 0
@@ -59,6 +164,7 @@ function! s:IListPrompt(pattern)
     endif
   endif
 endfunction "tagsrch.txt:673
+
 function! Bufferlist() range
   "silent exe a:firstline . "," . a:lastline . 's/^\s*//'
   "silent exe a:firstline . "," . a:lastline . 's/\s*$//'
@@ -66,22 +172,26 @@ function! Bufferlist() range
   "silent exe a:firstline . "," . a:lastline . 's/^[^"]*"//'
   "silent exe a:firstline . "," . a:lastline . "!sort -u"
 
+
   silent exe a:firstline . "," . a:lastline . 's/^[^"]*"\|"[^"]*$//ge'
   silent exe a:firstline . "," . a:lastline . "!sort -u"
   silent exe "norm gv"
 endfunction
+
 function! CaptureOutput(cmd)
   redir => capturedoutput
   silent execute a:cmd
   redir END
   silent put=capturedoutput
 endfunction
+
 function! SaveRecentFile ()
   silent !echo %:p >/tmp/recent.txt
   silent !cat /Volumes/jearsh/env/recent.vim | grep -v "%:p" >>/tmp/recent.txt
   silent !cat /tmp/recent.txt >/Volumes/jearsh/env/recent.vim
   "silent !mv /tmp/recent.txt /Volumes/jearsh/env/recent.vim
 endfunction
+
 function! LcdToNotesDir()
   if matchstr(expand('%:p'), '/notes/') == ''
     return
@@ -100,8 +210,10 @@ function! LcdToNotesDir()
     let xpand = next_xpand
   endwhile
 
+
   execute 'lcd ' . expand(xpand)
 endfunction
+
 function! Match(mregex)
   let groups = ["popMatch1", "popMatch2", "popMatch5", "popMatch6", "popMatch7", "popMatch8", "popMatch9", "popMatch10", "popMatch3", "popMatch4"]
   let matches = getmatches()
@@ -128,13 +240,16 @@ function! Match(mregex)
   endif
   call matchadd(groupToUse, a:mregex)
 endfunction
+
 function! Sequence(pat) range
   let x=1
   exe a:firstline . "," . a:lastline . "g" . a:pat . "s" . a:pat . "\\=x/ | let x=x+1"
 endfunction
+
 function! CleanupChat() range
   let x=1
   let rng=a:firstline . "," . a:lastline
+
 
   " remove all "\d:\d\d [AP]M"
   " s/^(Joshua Toyota|daniel|pedram)\s*\n/<a href="">\1</a>: /
@@ -144,6 +259,7 @@ function! CleanupChat() range
   " %s/\v^\s*\n(\s*\n)+//g
   "exe rng . "g" . a:pat . "s" . a:pat . "\\=x/ | let x=x+1"
 endfunction
+
 function! Mkdir()
   let path = expand("%:p:h")
   if len(glob(path)) == 0
@@ -153,10 +269,12 @@ function! Mkdir()
     echo "Directory already exists..."
   endif
 endfunction
+
 function! Scratch()
   let stmp = strftime("%Y%m%d.%H%M%S")
   exe "vs ~/lists/scratch/" . stmp
 endfunction
+
 function! FixListSyntax()
   set filetype=lists syntax=lists
   syn match listM09  /[0-9 ]\?[0-9. ]\?[0-9][BKMG]/
@@ -170,3 +288,8 @@ function! FixListSyntax()
   syn match listSmX  /((.*))/
   syn match listTime /\d\d\d\d-\d\d-\d\d ..:..:../
 endfunction
+
+
+
+
+

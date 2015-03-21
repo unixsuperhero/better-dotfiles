@@ -5,14 +5,22 @@ function! SourceFile(file)
   endif
 endfunction
 
+"
+"""" or maybe just include 1 file here: dotf/vim/index.vim
+"
+" call SourceFile(expand('~/dotfiles/vim/index.vim'))
+"
 call SourceFile(expand('~/dotfiles/vim/plugins.vim'))
 
 call SourceFile(expand('~/dotfiles/vim/init.vim'))
 
 call SourceFile(expand('~/dotfiles/vim/options.vim'))
 call SourceFile(expand('~/dotfiles/vim/mappings.vim'))
-call SourceFile(expand('~/dotfiles/vim/abbreviations.vim'))
+call SourceFile(expand('~/dotfiles/vim/abbrev.vim'))
 call SourceFile(expand('~/dotfiles/vim/colors.vim'))
 call SourceFile(expand('~/dotfiles/vim/functions.vim'))
 call SourceFile(expand('~/dotfiles/vim/autocmds.vim'))
+
+" call SourceFile(expand('~/dotfiles/vim/fix-rsi.vim'))
+call SourceFile(expand('~/dotfiles/vim/rspec.vim'))
 
