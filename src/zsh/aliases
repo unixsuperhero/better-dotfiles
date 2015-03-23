@@ -218,7 +218,7 @@ alias annotate="annotate -p before -e tests,fixtures"
 
 alias savedb="psql -U jturner saveology_development"
 
-alias vim="vim -O"
+alias vim="/usr/bin/env vim -O"
 alias vimp="vim +set\ bt=nofile -"
 
 # --------------------
@@ -244,3 +244,11 @@ alias t="tmux"
 
 alias ll="ls -l"
 
+
+# edit/source dotfiles
+
+alias eenv="cd ~/dotfiles/zsh; find . -type f -or -type l | vim -"
+alias senv="source ~/.zshrc"
+
+alias evim="cd ~/dotfiles/vim; find . -type f -or -type l | vim -"
+alias svim="source ~/.vimrc"
