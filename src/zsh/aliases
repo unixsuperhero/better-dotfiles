@@ -251,4 +251,3 @@ alias eenv="cd ~/dotfiles/zsh; find . -type f -or -type l | vim -"
 alias senv="source ~/.zshrc"
 
 alias evim="cd ~/dotfiles/vim; find . -type f -or -type l | vim -"
-alias svim="source ~/.vimrc"
