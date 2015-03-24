@@ -1,6 +1,9 @@
 
 # Dotfiles (by unixsuperhero)
 
+Before going any further, you might want to read some of the early sections of
+[About](doc/about.md).
+
 ## Table of Contents
 
 * versions

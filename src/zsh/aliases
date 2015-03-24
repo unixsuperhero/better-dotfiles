@@ -115,7 +115,7 @@
   ##------ pgrep & pkill ------
 
     alias pgrep="pgrep -ilf"
-    alias pkill="pkill -ilf"
+    #alias pkill="pkill -ilf"
 
   ##------ mail ------
 

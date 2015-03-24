@@ -93,8 +93,11 @@ ca vall vert sall
 ca vnext vert snext
 ca vprev vert sprevious
 
-ca note setl buftype=nofile
-ca nonote setl buftype=
+ca scratchthis setl buftype=nofile
+ca noscratchthis setl buftype=
+ca notethis setl buftype=nofile
+ca nonotethis setl buftype=
+
 ca w!! w ! sudo tee "%"
 ca Ls ls
 ca LS ls

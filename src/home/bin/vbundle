@@ -11,11 +11,17 @@ when /add/i
     `echo "#{repo}" >>~/.vimbundle.local`
   end
   system('vimbundles.sh')
-else
+when /search/i, /grep/i
   args.each do |url|
     repo = url.sub(/(https?:..)?[^\/]*github.com\//i, '').sub(/[.]git$/, '')
-    `echo "#{repo}" >>~/.vimbundle.local`
+    puts `grep -i "#{repo}" ~/.vimbundle{,.local}`
   end
-  system('vimbundles.sh')
+when /open/i
+  args.each do |url|
+    repo = url.sub(/(https?:..)?[^\/]*github.com\//i, '').sub(/[.]git$/, '')
+    puts `open "http://github.com/$(grep -hi "#{repo}" ~/.vimbundle{,.local} | head -1)"`
+  end
+else
+  echo "unknown command: #{cmd}"
 end
 
