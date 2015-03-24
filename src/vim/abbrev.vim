@@ -98,6 +98,13 @@ ca noscratchthis setl buftype=
 ca notethis setl buftype=nofile
 ca nonotethis setl buftype=
 
+ca ww w!
+ca waw wall!
+ca waa wall!
+
+ca qq q!
+ca qaq qall!
+ca qaa qall!
 ca w!! w ! sudo tee "%"
 ca Ls ls
 ca LS ls
