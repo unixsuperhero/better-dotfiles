@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+args = ARGV.dup
+
+cmd = args.shift
+
+case cmd
+when /add/i
+  args.each do |url|
+    repo = url.sub(/(https?:..)?[^\/]*github.com\//i, '').sub(/[.]git$/, '')
+    `echo "#{repo}" >>~/.vimbundle.local`
+  end
+  system('vimbundles.sh')
+else
+  args.each do |url|
+    repo = url.sub(/(https?:..)?[^\/]*github.com\//i, '').sub(/[.]git$/, '')
+    `echo "#{repo}" >>~/.vimbundle.local`
+  end
+  system('vimbundles.sh')
+end
+

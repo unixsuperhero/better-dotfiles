@@ -1,0 +1,11 @@
+#!/bin/bash
+
+for a in $(seq 4); do echo; done
+
+text="$(echo "$@")"
+
+echo "$text" | sed 's/./-/g'
+echo "$text"
+echo "$text" | sed 's/./-/g'
+
+for a in $(seq 4); do echo; done

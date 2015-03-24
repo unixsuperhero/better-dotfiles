@@ -1,5 +1,7 @@
 
 export RUBYLIB="$HOME/repos/hnotes/lib:$RUBYLIB"
+export EDITOR="vim"
+export VISUAL="vim"
 
 export my_home="/Users/jearsh"
 

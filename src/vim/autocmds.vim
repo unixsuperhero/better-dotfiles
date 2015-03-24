@@ -2,20 +2,21 @@
 " tmp/vimrc
 
 augroup vimrc
-augroup END
+  au!
 
 " tmp/vimrc.local
 
 " tmp/vimrc.josh
 
-augroup autosource_vimrc
 
   au BufWrite,BufWritePost *vimrc* nested source %
-augroup END
 
 au BufNewFile,BufRead,BufReadPost */lists/* set filetype=lists syntax=lists
 au BufNewFile,BufRead,BufReadPost */lists/hon set wrap
 au Filetype */lists/* runtime! ~/.vim/syntax/lists.vim
+
+au BufNewFile,BufRead,BufReadPost .vimbundle* set filetype=vimbundle syntax=vimbundle
+au FileType vimbundle       setlocal makeprg=vimbundles.sh
 
 au BufNewFile,BufRead,BufReadPost */browser-extensions/firefox/ff/* nmap <buffer> ,f :!cd %:h; cd "$(git rev-parse --show-toplevel)"; test_listener 'bin/testff'<cr><cr>
 
@@ -53,3 +54,9 @@ au FileType notes   setlocal tw=80
 au FileType notes   nmap ,s :w\|!git add %;git commit -m 'autocommitting %'<cr>
 
 
+au VimEnter * RainbowParenthesesToggle
+au Syntax * RainbowParenthesesLoadRound
+au Syntax * RainbowParenthesesLoadSquare
+au Syntax * RainbowParenthesesLoadBraces
+
+augroup END

@@ -30,3 +30,6 @@ nnoremap ,q :wqa<cr>
 
 nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop
 
+
+nmap <leader>u <Plug>(openbrowser-smart-search)
+vmap <leader>u <Plug>(openbrowser-smart-search)

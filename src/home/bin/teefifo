@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function teeoutput() {
+  test -d ./tmp/ || mkdir -pv tmp
+  fifo=tmp/testing
+  test -a $fifo  && rm -rf $fifo
+  mkfifo $fifo
+  tee tmp/teeoutput.log < $fifo &
+  eval "$@" &> $fifo
+  return $?
+}
+
+teeoutput "$@"
+

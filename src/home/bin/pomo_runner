@@ -7,6 +7,15 @@
 #    mkfifo "$1"
 #  fi
 #}
+function new_bea_session() {
+  tmux split-window -c "$1" -t bea:0 test_listener
+  tmux resize-pane -c "$1" -D -t bea:0.1 10
+  tmux split-window -c "$1" -h -t bea:0
+  tmux neww -d -c "$1" -t bea:1 pomo
+  tmux a -t bea
+}
+
+export pomorunnerstarted=0
 
 function start_listener() {
   #if [ ! -p ~/.pomos/pomo_runner ]; then
@@ -21,11 +30,21 @@ function start_listener() {
   echo "Pomodoro Runner Started..."
   echo
 
+  pomorunnerstarted=1
+
+  tmux has-session -t bea && tmux new -d -s bea -c "$HOME/beautified" &&
+    new_bea_session "$HOME/beautified" ||
+    tmux a -t bea
+
+  echo 'hi'
   while true
   do
+    echo 'b'
     cmd="$(cat ~/.pomos/pomo_runner)"
     #echo "$cmd"
+    echo 'c'
     bash -c "$cmd"
+    echo 'd'
   done
 }
 

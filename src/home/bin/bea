@@ -1,22 +1,25 @@
 #!/bin/bash
 
 function new_bea_session() {
-  tmux split-window -c "$1" -t bea:0 test_listener
-  tmux resize-pane -c "$1" -D -t bea:0.1 10
-  tmux split-window -c "$1" -h -t bea:0
-  tmux neww -d -c "$1" -t bea:1 pomo
-  tmux a -t bea
+  if tmux has-session -t bea
+  then
+    tmux a -t bea
+  else
+    tmux new -d -s bea -c "$1" &&
+    tmux split-window -c "$1" -t bea:0 test_listener
+    tmux resize-pane -D -t bea:0.1 10
+    tmux split-window -c "$1" -h -t bea:0
+    tmux neww -d -c "$1" -t bea:1 pomo
+    tmux a -t bea
+  fi
 }
 
 case $1 in
   ('')
-    tmux new -d -s bea -c "$HOME/beautified" &&
-      new_bea_session "$HOME/beautified" ||
-      tmux a -t bea
+    new_bea_session "$HOME/beautified"
     ;;
   (*)
-    tmux new -d -s bea -c "$1" &&
-      new_bea_session "$1" ||
-      tmux a -t bea
+    new_bea_session "$1"
     ;;
 esac
+

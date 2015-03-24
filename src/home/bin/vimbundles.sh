@@ -24,6 +24,11 @@ action_from() {
   if [ -r $1 ]; then
     repos="$(cat $1)"
     for repo in $repos; do
+      if echo $repo | egrep '^\s*#' &>/dev/null
+      then
+        echo SKIPPING $repo BECAUSE IT STARTS WITH A POUND CHAR
+        continue
+      fi
       cd $BASE
       dir="$(basename $repo)"
       if [ -d "$BASE/$dir" ]; then

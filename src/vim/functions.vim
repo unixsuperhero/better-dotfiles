@@ -1,22 +1,9 @@
 
 " tmp/vimrc
 
-
-
-
-
-
-
-
-
-
 " tmp/vimrc.local
 
-
-
 command! -nargs=* Jgrep :silent bufdo vimgrepadd <args> %
-
-
 
 function! <SID>SynStack()
   if !exists("*synstack")
@@ -25,104 +12,17 @@ function! <SID>SynStack()
   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunc
 
-
-
-
 " tmp/vimrc.josh
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func! Eatchar(pat)
   let c = nr2char(getchar(0))
   return (c =~ a:pat) ? '' : c
 endfunc
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func! Eatchar(pat)
   let c = nr2char(getchar(0))
   return (c =~ a:pat) ? '' : c
 endfunc
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 command! -nargs=1 ReplStr exe "s/SSS/" . <q-args>
 command! -nargs=1 ChangeNick exe '%s#\v(((real|user)_name|nick) [=] ["])[^"]*(["])#\1' . <q-args> . '\4#|w'
@@ -131,7 +31,7 @@ command! -range Blist <line1>,<line2>call Bufferlist()
 command! -nargs=0 Mktitle s/^\(\s*\)\(.\{-}\)\s*$/\1[ \2 ]/
 command! -nargs=0 Mkfile s/^\(\s*\)\(.\{-}\)\s*$/\1[[[ \2 ]]]/
 command! -nargs=0 PutRecentFiles call PutRecentFiles()
-command! -nargs=0 Mkdir call Mkdir()
+" command! -nargs=0 Mkdir call Mkdir()
 command! -nargs=0 FixListSyntax call FixListSyntax()
 command! -nargs=0 Scratch call Scratch()
 command! -nargs=+ Match call Match(<q-args>)
@@ -172,7 +72,6 @@ function! Bufferlist() range
   "silent exe a:firstline . "," . a:lastline . 's/^[^"]*"//'
   "silent exe a:firstline . "," . a:lastline . "!sort -u"
 
-
   silent exe a:firstline . "," . a:lastline . 's/^[^"]*"\|"[^"]*$//ge'
   silent exe a:firstline . "," . a:lastline . "!sort -u"
   silent exe "norm gv"
@@ -209,7 +108,6 @@ function! LcdToNotesDir()
     endif
     let xpand = next_xpand
   endwhile
-
 
   execute 'lcd ' . expand(xpand)
 endfunction
@@ -250,7 +148,6 @@ function! CleanupChat() range
   let x=1
   let rng=a:firstline . "," . a:lastline
 
-
   " remove all "\d:\d\d [AP]M"
   " s/^(Joshua Toyota|daniel|pedram)\s*\n/<a href="">\1</a>: /
   " get the length of \1
@@ -260,15 +157,15 @@ function! CleanupChat() range
   "exe rng . "g" . a:pat . "s" . a:pat . "\\=x/ | let x=x+1"
 endfunction
 
-function! Mkdir()
-  let path = expand("%:p:h")
-  if len(glob(path)) == 0
-    echo "Making directory: " . path . " it doesn't exist."
-    call mkdir(path, "p")
-  else
-    echo "Directory already exists..."
-  endif
-endfunction
+" function! Mkdir()
+"   let path = expand("%:p:h")
+"   if len(glob(path)) == 0
+"     echo "Making directory: " . path . " it doesn't exist."
+"     call mkdir(path, "p")
+"   else
+"     echo "Directory already exists..."
+"   endif
+" endfunction
 
 function! Scratch()
   let stmp = strftime("%Y%m%d.%H%M%S")
@@ -288,8 +185,5 @@ function! FixListSyntax()
   syn match listSmX  /((.*))/
   syn match listTime /\d\d\d\d-\d\d-\d\d ..:..:../
 endfunction
-
-
-
 
 

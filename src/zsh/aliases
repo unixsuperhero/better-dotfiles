@@ -220,6 +220,7 @@ alias savedb="psql -U jturner saveology_development"
 
 alias vim="/usr/bin/env vim -O"
 alias vimp="vim +set\ bt=nofile -"
+alias v='f -e vim'
 
 # --------------------
 # Tmux Pomodoro Stuff 

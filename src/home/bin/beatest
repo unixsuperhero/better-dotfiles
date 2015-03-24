@@ -1,0 +1,11 @@
+#!/bin/bash
+
+d=$HOME/beautified
+
+touch pipestatus
+
+rspec="bundle exec rspec"
+winname=$(printf "testing%d" $wname $(tmux list-windows | egrep "^\d\d*:\s\s*${wname}" | wc -l))
+echo "teefifo $rspec $@ && tmux renamew -t "${winname}" pass || tmux renamew -t "${winname}" FAIL; echo -n 'press ENTER to close'; read x"
+tmux neww -d -t bea -c "$d" -n "${winname}" "teefifo $rspec $@ && tmux renamew -t "${winname}" pass || tmux renamew -t "${winname}" FAIL; echo -n 'press ENTER to close'; read x"
+
