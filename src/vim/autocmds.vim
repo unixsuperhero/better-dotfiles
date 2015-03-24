@@ -53,8 +53,8 @@ augroup vimrc
   au FileType notes   setlocal tw=80
   au FileType notes   nmap ,s :w\|!git add %;git commit -m 'autocommitting %'<cr>
 
-  au BufNewFile,BufRead,BufReadPost */hero/notes/* setlocal ft=notes2
-  au FileType notes2  setlocal ff=unix
+  " au BufNewFile,BufRead,BufReadPost */hero/notes/* setlocal ft=notes2
+  " au FileType notes2  setlocal ff=unix
 
 
   au VimEnter * RainbowParenthesesToggle
