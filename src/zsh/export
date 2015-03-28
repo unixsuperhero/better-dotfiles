@@ -1,5 +1,5 @@
 
-export RUBYLIB="$HOME/repos/hnotes/lib:$RUBYLIB"
+export RUBYLIB="$HOME/repos/h/lib:$HOME/repos/hnotes/lib:$RUBYLIB"
 export EDITOR="vim"
 export VISUAL="vim"
 
