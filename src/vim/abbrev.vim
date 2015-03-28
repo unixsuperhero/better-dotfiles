@@ -73,6 +73,7 @@ ca mset set?<left>
 
 ca man vnew \| set buftype=nofile \| r!man  \| col -b<left><left><left><left><left><left><left><left><left><C-R>=Eatchar('\s')<CR>
 ca pager vnew \| set buftype=nofile \| r! \| col -b<M-b><M-b><M-b><left><C-R>=Eatchar('\s')<CR>
+ca gstatus sp \| wincmd J \| Gstatus
 
 ca vimso so ~/.vimrc.josh
 ca sovim so ~/.vimrc.josh

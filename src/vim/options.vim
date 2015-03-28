@@ -68,7 +68,7 @@ set formatprg=par\ -w60re
   set undofile
   set undodir=~/.vim/tmp//,~/.vim/undo_files//,~/.vim//,/tmp//
 
-  set filetype=lists syntax=lists
+  "set filetype=lists syntax=lists
 
 set nolist                                        " (Show/Don't Show) special characters represententing whitespace
 

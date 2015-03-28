@@ -33,3 +33,14 @@ nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop
 
 nmap <leader>u <Plug>(openbrowser-smart-search)
 vmap <leader>u <Plug>(openbrowser-smart-search)
+
+" hero
+
+" Hero Notes
+
+nnoremap <leader>hns !!note save<cr>
+nnoremap <leader>hnm onnoremap <leader<c-v>>hncx o #tags #go #here<esc<c-v>>0i<esc>
+nnoremap <leader>hnm o:nnoremap <leader<c-v>>hncx o #start_typing_a_tag<esc<c-v>>0i<esc>0fsve<c-g>
+
+nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
+nnoremap <leader>hncn o #hero #todo #notes<esc>0i
