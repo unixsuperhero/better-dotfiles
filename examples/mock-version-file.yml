@@ -1,0 +1,16 @@
+name: mbp
+description: 'my personal laptop'
+plugins:
+  - vim:
+    - patches:
+      - pathogen
+      - plugins
+      - env
+      - hero
+  - zsh:
+    - patches:
+      - git
+      - ruby
+      - rails
+      - rbenv
+      - hero
