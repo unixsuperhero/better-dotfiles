@@ -73,10 +73,10 @@ ca mset set?<left>
 
 ca man vnew \| set buftype=nofile \| r!man  \| col -b<left><left><left><left><left><left><left><left><left><C-R>=Eatchar('\s')<CR>
 ca pager vnew \| set buftype=nofile \| r! \| col -b<M-b><M-b><M-b><left><C-R>=Eatchar('\s')<CR>
-ca gstatus sp \| wincmd J \| Gstatus
+ca gstatus Gstatus \| wincmd J
 
-ca vimso so ~/.vimrc.josh
-ca sovim so ~/.vimrc.josh
+ca vimso so ~/.vimrc
+ca sovim so ~/.vimrc
 
 ca ll <c-u>!ls -l
 
@@ -136,8 +136,8 @@ ca fishfunction vs ~/.config/fish/functions/*<C-r>=Eatchar('\s')<cr>
 ca editeditrc vs ~/.editrc
 ca editinput vs ~/.inputrc
 ca editinputrc vs ~/.inputrc
-ca editvim vs ~/.vimrc.josh
-ca evim vs ~/.vimrc.josh
+ca editvim vs ~/.vimrc
+ca evim vs ~/.vimrc
 
 ca ebundle vs ~/.vimbundles/**<C-r>=Eatchar('\s')<cr>
 ca vimbundle vs ~/.vimbundles/**<C-r>=Eatchar('\s')<cr>
