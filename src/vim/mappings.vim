@@ -29,7 +29,6 @@ nnoremap k gk
 nnoremap K kJ
 nnoremap ,c :vert wincmd <C-]><CR>
 nnoremap ,f :CommandT<cr>
-nnoremap ,s :w\|exe("!cd %:p:h; git add %:t; git commit -m 'autocommitting %:t'")<cr>
 nnoremap ,q :wqa<cr>
 
 nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop
@@ -41,6 +40,7 @@ nmap <leader>w :w<cr>
 nmap <leader>q :q<cr>
 nmap <leader>Q :q!<cr>
 nmap <leader>l :ls<cr>
+nnoremap <leader>s :w\|exe("!cd %:p:h; git add %:t; git commit -m 'autocommitting %:t'")<cr>
 nmap <leader>c :w !pbcopy<cr>
 nmap <leader>p :.!pbpaste<cr>
 
