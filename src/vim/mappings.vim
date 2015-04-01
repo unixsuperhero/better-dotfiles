@@ -1,4 +1,8 @@
 
+" set mapleader to space, unset it later
+
+let mapleader=' '
+
 " tmp/vimrc
 
 " tmp/vimrc.local
@@ -25,11 +29,19 @@ nnoremap k gk
 nnoremap K kJ
 nnoremap ,c :vert wincmd <C-]><CR>
 nnoremap ,f :CommandT<cr>
-nnoremap ,s :w\|!git add %;git commit -m 'autocommitting %'<cr>
+nnoremap ,s :w\|exe("!cd %:p:h; git add %:t; git commit -m 'autocommitting %:t'")<cr>
 nnoremap ,q :wqa<cr>
 
 nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop
 
+" leader mappings
+nmap <leader>; :
+nmap <leader><leader> :
+nmap <leader>w :w<cr>
+nmap <leader>q :q<cr>
+nmap <leader>Q :q!<cr>
+nmap <leader>c :w !pbcopy<cr>
+nmap <leader>p :.!pbpaste<cr>
 
 nmap <leader>u <Plug>(openbrowser-smart-search)
 vmap <leader>u <Plug>(openbrowser-smart-search)
@@ -44,3 +56,10 @@ nnoremap <leader>hnm o:nnoremap <leader<c-v>>hncx o #start_typing_a_tag<esc<c-v>
 
 nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
 nnoremap <leader>hncn o #hero #todo #notes<esc>0i
+
+
+" unset mapleader
+" try setting it to comma
+
+let mapleader=','
+
