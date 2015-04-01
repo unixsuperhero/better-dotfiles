@@ -40,6 +40,7 @@ nmap <leader><leader> :
 nmap <leader>w :w<cr>
 nmap <leader>q :q<cr>
 nmap <leader>Q :q!<cr>
+nmap <leader>l :ls<cr>
 nmap <leader>c :w !pbcopy<cr>
 nmap <leader>p :.!pbpaste<cr>
 
