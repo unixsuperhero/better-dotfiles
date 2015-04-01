@@ -2,6 +2,7 @@
 let mapleader=' '
 nnoremap <leader>f :call RunTests()<cr>
 nnoremap <leader>l :call RunTests(1)<cr>
+let mapleader=','
 
 function! RunTests(...)
   let in_test_file = match(expand("%"), '_spec.rb\(:\d\d*\)*$') != -1
