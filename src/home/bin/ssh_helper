@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cd ~/.ssh
+
+cat <<-SSH_HELPER | tee ssh_helper ; vim ssh_helper
+
+# SSH File Helper
+-----------------
+
+## Edit Configurable Files (type gf or <c-w>f on a filename)
+------------------------------------------------------------
+config
+authorized_keys
+known_hosts
+
+
+## Copy Command Template Using any *.pem files (type yy@" on a line)
+--------------------------------------------------------------------
+$(for a in *.pem; do echo ":!echo -n ssh -i blog-key-pair.pem user@host | pbcopy"; done)
+
+
+## Copy Public Keys the Unix Way (type !!sh<Enter> on a line)
+-------------------------------------------------------------
+$(for a in *.pub; do echo "cat $a | pbcopy"; done)
+
+
+## Key Pairs
+------------
+$(for a in *.pub; do echo "${a%.pub}"; echo "$a"; echo; done)
+
+SSH_HELPER
+
