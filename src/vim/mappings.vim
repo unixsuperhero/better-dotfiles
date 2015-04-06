@@ -37,6 +37,7 @@ nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop<c-u><esc>
 nmap <leader>; :
 nmap <leader><leader> :
 nmap <leader>w :w<cr>
+nmap <leader>e :e<cr>
 nmap <leader>q :q<cr>
 nmap <leader>Q :q!<cr>
 nmap <leader>l :ls<cr>
