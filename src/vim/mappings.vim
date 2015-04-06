@@ -31,7 +31,7 @@ nnoremap ,c :vert wincmd <C-]><CR>
 nnoremap ,f :CommandT<cr>
 nnoremap ,q :wqa<cr>
 
-nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop
+nmap cop :set paste!<cr>       " works great in insert mode <C-o>cop<c-u><esc>
 
 " leader mappings
 nmap <leader>; :
