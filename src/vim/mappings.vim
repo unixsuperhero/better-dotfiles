@@ -45,6 +45,8 @@ nnoremap <leader>s :w\|exe("!cd %:p:h; git add %:t; git commit -m 'autocommittin
 nmap <leader>c :w !pbcopy<cr>
 nmap <leader>p :.!pbpaste<cr>
 
+nmap <leader>! !!sh<cr>
+
 nmap <leader>u <Plug>(openbrowser-smart-search)
 vmap <leader>u <Plug>(openbrowser-smart-search)
 
