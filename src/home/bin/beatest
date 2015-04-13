@@ -1,6 +1,6 @@
 #!/bin/bash
 
-d=$HOME/beautified
+d=$HOME/bea
 
 touch pipestatus
 

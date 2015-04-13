@@ -28,11 +28,6 @@ alias pomor="pomo_runner"
 alias pomol="pomo_listener"
 
 # global aliases
-alias -g VF=' | tee /tmp/vim_args | eval "vim $(echo $(cat /tmp/vim_args))"'
-alias -g V=' | vim -'
-alias -g VP=' | vimp'
-alias -g VPL=' | plain | vimp'
-
 alias -g CN='| cat -n'
 
 # easy access to certain files

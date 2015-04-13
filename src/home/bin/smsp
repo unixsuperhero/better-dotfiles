@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# tmux split-window -d -l 17
+tmux split-window -dp 25
+
+# tmux resize-window -D 10
+
+# choose-window [-t target-window][-F format] [template]
+# find-window (findw) [-CNT] [-F format] [-t target-window] match-string
+# kill-window (killw) [-a] [-t target-window]
+# last-window (last) [-t target-session]
+# link-window (linkw) [-dk] [-s src-window] [-t dst-window]
+# list-windows (lsw) [-a] [-F format] [-t target-session]
+# move-window (movew) [-dkr] [-s src-window] [-t dst-window]
+# new-window (neww) [-adkP] [-c start-directory] [-F format] [-n window-name] [-t target-window] [command]
+# next-window (next) [-a] [-t target-session]
+# previous-window (prev) [-a] [-t target-session]
+# rename-window (renamew) [-t target-window] new-name
+# respawn-window (respawnw) [-k] [-t target-window] [command]
+# rotate-window (rotatew) [-DU] [-t target-window]
+# select-window (selectw) [-lnpT] [-t target-window]
+# set-window-option (setw) [-agoqu] [-t target-window] option [value]
+# show-window-options (showw) [-gv] [-t target-window] [option]
+# split-window (splitw) [-dhvP] [-c start-directory] [-F format] [-p percentage|-l size] [-t target-pane] [command]
+# swap-window (swapw) [-d] [-s src-window] [-t dst-window]
+# unlink-window (unlinkw) [-k] [-t target-window]

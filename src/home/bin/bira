@@ -1,0 +1,280 @@
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+require 'optparse'
+require 'mash'
+require 'yaml'
+require 'csv'
+
+module Jira
+  class BaseSubCommand
+    class << self
+      def command_matches?(cmd=ARGV.clone.shift)
+        matching_names.include? cmd
+      end
+
+      def matching_names # sub-command names and the acceptable aliases
+        %w{ examples e ex example }
+      end
+
+    def command_name
+      name.split(/(?<!^)(?=[A-Z])/).join(?_).downcase
+    end
+
+      def run(args=ARGV.clone, stdin=$stdin)
+        new(args, stdin).tap(&:run)
+      end
+    end
+
+    attr_accessor :original_args, :args, :options, :returned_with
+    attr_accessor :output, :output_lines, :headers, :screen, :longest_header
+    def initialize(args=ARGV.clone, stdin=$stdin)
+      @original_args = args.clone
+      @args = args
+      @stdin = stdin
+      @options = Mash.new
+
+      configure
+      load_configuration
+      parse_options
+    end
+
+    def load_configuration
+      file = IO.read(config_file)
+      yaml = YAML.load(file)
+      @options.merge!(yaml)
+      @options.pretty ||= false
+      @options
+    end
+
+    def config_exists?
+      File.exist? config_file
+    end
+
+    def config_file
+      File.join(ENV['HOME'], '.birarc')
+    end
+
+    def configure
+      return false if config_exists?
+      default_config = {
+        server: 'https://beautified.atlassian.net',
+        user: 'josh',
+        pass: 'redacted',
+        project: 'BEARAILS',
+      }.to_yaml
+      IO.write config_file, default_config
+      system('vim', config_file)
+    end
+
+    def parse_options
+      args.options do |opts|
+        opts.on('-P', '--pretty', 'convert csv output to a nicer vertical table') do |name|
+          @options.pretty = true
+        end
+      end.parse!(args)
+    rescue OptionParser::InvalidOption => e
+    end
+
+    def base_cmd
+      format('jira -s %s -u %s -p %s --quiet', options.server, options.user, options.pass)
+    end
+
+    def make_pretty
+      csv = CSV.parse output.chomp
+      @headers = csv.shift
+      @longest_header = headers.map(&:length).max
+      @screen = []
+      csv.map do |line|
+        @screen += headers.map.with_index do |h,i|
+          format("%#{longest_header}s: %s", h, line[i])
+        end
+        @screen += ['']
+      end
+      @screen.flatten.join("\n")
+    end
+
+    def command_name
+      @command_name = self.class.command_name
+    end
+
+    def run
+      @returned_with = "running the #{command_name} command"
+    end
+  end
+
+  module Beautified
+    class Issues < Jira::BaseSubCommand
+      class << self
+        def matching_names # sub-command names and the acceptable aliases
+          %w{ issues i }
+        end
+      end
+
+      attr_accessor :subcommand
+      def parse_options
+        @subcommand = args.shift if subcommands.include?(args.first)
+
+        args.options do |opts|
+          opts.on('-p', '--project PROJECT', 'convert csv output to a nicer vertical table') do |name|
+            options.project = name
+          end
+
+          opts.on('-P', '--pretty', 'convert csv output to a nicer vertical table') do
+            @options.pretty = true
+          end
+        end.parse!(args)
+
+
+      rescue OptionParser::InvalidOption => e
+        @args = e.args + args
+      end
+
+      def subcommands
+        %w{ list }
+      end
+
+      def run
+        case subcommand
+        when 'list'
+          puts "COMMAND => #{%{#{base_cmd} -a getIssueList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts "COMMAND => #{%{#{base_cmd} -a getIssueList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts
+          puts
+          @output = `#{base_cmd} -a getIssueList --project #{options.project} #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}`
+          @output = make_pretty if options.pretty == true
+        else
+          puts "COMMAND => #{%{#{base_cmd} -a getIssueList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts "COMMAND => #{%{#{base_cmd} -a getIssueList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts
+          puts
+          @output = `#{base_cmd} -a getIssueList --project #{options.project} #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}`
+          @output = make_pretty if options.pretty == true
+        end
+        @output
+      end
+    end
+
+    class Projects < Jira::BaseSubCommand
+      class << self
+        def matching_names # sub-command names and the acceptable aliases
+          %w{ projects project p }
+        end
+      end
+
+      attr_accessor :subcommand
+      def parse_options
+        @subcommand = args.shift if subcommands.include?(args.first)
+
+        args.options do |opts|
+          opts.on('-P', '--pretty', 'convert csv output to a nicer vertical table') do
+            @options.pretty = true
+          end
+        end.parse!(args)
+
+      rescue OptionParser::InvalidOption => e
+        @args = e.args + args
+      end
+
+      def subcommands
+        %w{ list }
+      end
+
+      def run
+        case subcommand
+        when 'list'
+          puts "COMMAND => #{%{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts "COMMAND => #{%{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts
+          puts
+          @output = %x{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}
+          @output = make_pretty if options.pretty
+        else
+          puts "COMMAND => #{%{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts "COMMAND => #{%{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}}"
+          puts
+          puts
+          @output = %x{#{base_cmd} -a getProjectList #{args.map{|a| a[/^-/] && a || "'#{a}'" }.join(' ')}}
+          @output = make_pretty if options.pretty
+        end
+      end
+    end
+  end
+
+
+  class << self
+    def run(args=ARGV.clone, stdin=$stdin)
+      subcmd = args.shift
+
+      handler = handlers.find do |cmdhandler|
+        cmdhandler.command_matches?(subcmd)
+      end
+
+      return 'command not found' if handler == nil
+
+      handler.run(args, stdin)
+    end
+
+    def handlers
+      Beautified.constants.map do |subcmd|
+        Beautified.const_get(subcmd)
+      end
+    end
+  end
+end
+
+runner = Jira.run
+
+puts runner.output
+
+# ap runner: runner, returned_with: runner.returned_with
+
+__END__
+
+{
+       :args => [],
+    :options => {
+        "name" => "josh"
+    }
+}
+{
+           :runner => #<Jira::Beautified::Add:0x007f958908abd0 @args=[], @options=<Mash name="josh">, @returned_with="running the Jira::Beautified::Add command">,
+    :returned_with => "running the Jira::Beautified::Add command"
+}
+
+
+# ran from intentionally bad subcommand
+{
+    :return => "command not found"
+}
+
+
+# ran from add subcommand
+{
+       :args => [],
+    :options => {
+        "name" => "josh"
+    }
+}
+{
+    :return => "running the Jira::Beautified::Add command"
+}
+
+
+{
+    :parsed => {}
+}
+{
+    :return => "running the Jira::Beautified::Add command"
+}
+
+
+
+
+
+:/__END__/+1 r!ruby templates/bin.rb add -n josh; echo; echo
+:/__END__/+1 r!ruby templates/bin.rb a -n josh; echo; echo
+:/__END__/+1 r!ruby templates/bin.rb remove -n josh; echo; echo
+:/__END__/+1 r!ruby templates/bin.rb rm -n josh; echo; echo
+:/__END__/+1 r!ruby templates/bin.rb sub_command_not_found -n josh; echo; echo
+

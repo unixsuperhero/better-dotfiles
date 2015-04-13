@@ -1,0 +1,179 @@
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+
+if Dir['lib/clitasks.rb'].count > 0 && (Dir['.git'].count > 0 || ENV['CLIT_ENV'] == 'test')
+  require './lib/clitasks'
+else
+  require 'clitasks'
+end
+
+class String
+  def split_unescaped(str, opts={}, &block)
+    self.split(/(?<!\\)#{str}/).map do |s|
+      s = s.gsub(/\\(?=#{str})/, '')
+      s = s.sub(/^\s*/,'').sub(/\s*$/,'') if opts[:trim] == true
+      s = yield s if block_given?
+      s
+    end
+  end
+end
+
+module Hero
+
+  class NoteCommand
+    attr_accessor :original_args, :args, :stdin, :io
+    attr_accessor :subcommand
+
+    def self.run(args=ARGV.clone, io=$stdin)
+      new(args, io).process_subcommand
+    end
+
+    def initialize(args=ARGV.clone, io=$stdin)
+      @original_args = args.clone
+      @subcommand = args.shift || 'list'
+
+      @args = args
+      @io = io
+    end
+
+    def stdin
+      io
+    end
+
+    def command
+      subcommand
+    end
+
+    def is_edit_bin_subcommand?
+      command[/--?e(d(i(t)?)?)?/] ? true : false
+    end
+
+    def edit_bin
+      task_bin = File.realpath(__FILE__)
+      task_bin_dir = File.dirname(task_bin)
+      git_dir = `cd #{task_bin_dir}; git rev-parse --show-toplevel`.chomp
+      Dir.chdir(git_dir)
+      # files = []
+      # if args.count > 0
+      #   args.flat_map do |arg|
+      #     files += Dir["{bin,lib}/**/*.rb"].grep Regexp.new('.*' + arg.scan(/./).join('.*'))
+      #   end
+      # end
+      # tempfile = Tempfile.new('note-project')
+      # %x{find bin lib -type f >#{tempfile.path}}
+      # system('vim -O "%s" "bin/%s"' % [tempfile.path, File.basename(task_bin)])   #, task_bin_dir, files.uniq.join(' ')])
+      # tempfile.close
+      # tempfile.unlink
+      CliTasks::ProjectFile.generate(git_dir)
+      Dir.chdir(git_dir)
+      system(format('vim -O "%s" "%s" "%s"', 'project-index', 'bin/note', 'lib/clitasks/commands.rb'))
+      CliTasks::Commands.commit('auto-saving bin/note')
+      return true
+    end
+
+    def process_subcommand
+      return edit_bin if is_edit_bin_subcommand?
+
+      Dir.chdir(CliTasks::Commands.world.path)
+
+      case command
+      when 'next_filename'
+        puts CliTasks::Commands.next_filename
+        return
+      when 'index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.index
+        CliTasks::Commands.rebuild
+      when 'update_index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.update_index
+        CliTasks::Commands.rebuild
+      when 'print_index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.print_index
+        CliTasks::Commands.rebuild
+      when 'save', 's'
+        CliTasks::Commands.save args, $stdin
+        CliTasks::Commands.rebuild
+      when 'add', 'a', 'new', 'n', 'create', 'c', 'import', 'i'
+        CliTasks::Commands.create args, $stdin
+        CliTasks::Commands.rebuild
+      when 'rebuild'
+        CliTasks::Commands.rebuild
+      when 'edit'
+        CliTasks::Commands.edit *args
+        CliTasks::Commands.rebuild
+      when 'search'
+        if args.any?{|arg| arg == '-e' }
+          CliTasks::Commands.edit *args.reject{|arg| arg == '-e' }
+        else
+          CliTasks::Commands.search *args
+        end
+        CliTasks::Commands.rebuild
+      when 'commit'
+        CliTasks::Commands.commit
+        return
+      when 'test'
+        return CliTasks::Commands.test args, $stdin
+      when 'list'
+        CliTasks::Commands.list *args
+      else
+        CliTasks::Commands.list *original_args
+      end
+      CliTasks::Commands.commit
+    end
+
+  end
+end
+# command = ARGV.shift || 'list'
+
+Hero::NoteCommand.run
+
+# case command
+# when 'version'
+#   puts CliTasks::VERSION
+# when 'index'
+#   CliTasks::Commands.rebuild
+#   CliTasks::Commands.index
+# when 'rebuild'
+#   CliTasks::Commands.rebuild
+# when 'multi', 'many', 'mcreate'
+#   CliTasks::Commands.mcreate *ARGV
+#   CliTasks::Commands.rebuild
+# when 'create', 'new', 'add', 'c', 'n', 'a'
+#   CliTasks::Commands.create *ARGV
+#   CliTasks::Commands.rebuild
+# when 'edit'
+#   CliTasks::Commands.edit *ARGV
+#   CliTasks::Commands.rebuild
+# when 'search'
+#   if ARGV.any?{|arg| arg == '-e' }
+#     CliTasks::Commands.edit *ARGV.reject{|arg| arg == '-e' }
+#   else
+#     CliTasks::Commands.search *ARGV
+#   end
+#   CliTasks::Commands.rebuild
+# when 'import'
+#   if ARGV.any?
+#     tasks = IO.read(ARGV[0]).split(/\s*\n+\s*/)
+#     CliTasks::Commands.mcreate *tasks
+#     CliTasks::Commands.rebuild
+#   else
+#     f = Tempfile.new('tasks')
+#     system ENV['EDITOR'] || 'vim', f.path
+#     tasks = IO.read(f.path).split(/\s*\n+\s*/)
+#     CliTasks::Commands.mcreate *tasks
+#     CliTasks::Commands.rebuild
+#   end
+# when 'start'
+# when 'finish'
+# when 'tag'
+# when 'comment'
+# when 'list'
+#   CliTasks::Commands.list *ARGV
+# else
+#   CliTasks::Commands.list *ARGV.unshift(command)
+# end
+
+# vim: ft=ruby
