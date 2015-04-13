@@ -45,6 +45,14 @@ nnoremap <leader>s :w\|exe("!cd %:p:h; git add %:t; git commit -m 'autocommittin
 nmap <leader>c :w !pbcopy<cr>
 nmap <leader>p :.!pbpaste<cr>
 
+nmap <leader>m :set mp?<cr>
+nmap <leader>M :make<cr>
+nmap <leader><c-m> :set mp=
+
+nmap <leader>k :set mp?<cr>
+nmap <leader>K :make<cr>
+nmap <leader><c-k> :set mp=
+
 nmap <leader>! yyp!!sh<cr>
 
 nmap <leader>u <Plug>(openbrowser-smart-search)
