@@ -62,7 +62,16 @@ vmap <leader>u <Plug>(openbrowser-smart-search)
 
 " Hero Notes
 
-nnoremap <leader>hns !!note save<cr>
+nnoremap <leader>ni  :!tbg 'note import'<cr>
+nnoremap <leader>hni :!tbg 'note import'<cr>
+
+nnoremap <leader>ns :HeroNoteSave<cr>
+vnoremap <leader>ns :HeroNoteSave<cr>
+
+" nnoremap <leader>hns !!note save<cr>
+nnoremap <leader>hns :HeroNoteSave<cr>
+vnoremap <leader>hns :HeroNoteSave<cr>
+
 nnoremap <leader>hnm onnoremap <leader<c-v>>hncx o #tags #go #here<esc<c-v>>0i<esc>
 nnoremap <leader>hnm o:nnoremap <leader<c-v>>hncx o #start_typing_a_tag<esc<c-v>>0i<esc>0fsve<c-g>
 
