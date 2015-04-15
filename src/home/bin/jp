@@ -80,6 +80,7 @@ function parts_of_speech() {
 PARTSOFSPEECH
 }
 
+function jisho() {
 case $1 in
   ('')
     echo 'You have to pass a search term to actually get results.'
@@ -93,9 +94,19 @@ case $1 in
     fi
     ;;
   (*)
+
+    for a; do
+      open "http://beta.jisho.org/search/${a}"
+    done
+
+    return 0
+
     printf "%-22s %-7s %-s\n" "$(date +"%Y-%m-%d %H:%M:%S")" "jp" "$1" >>/Users/MacbookPro/logs/japanese-search-history.log
     #curl -s "http://nihongone.dev/define/$(ruby -r uri -e "puts URI.encode('$1')").${2:-txt}" | less
     curl -s "http://nihongone.dev/define/${1}.${2:-txt}" | less
     ;;
 esac
+}
+
+jisho "$@"
 
