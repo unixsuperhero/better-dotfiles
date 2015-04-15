@@ -95,6 +95,20 @@ ca vall vert sall
 ca vnext vert snext
 ca vprev vert sprevious
 
+cuna snote
+cuna hnote
+cuna spnote
+
+ca snote new \| setl buftype=nofile
+ca hnote new \| setl buftype=nofile
+ca spnote new \| setl buftype=nofile
+
+cuna vnote
+cuna vsnote
+
+ca vnote  vnew \| setl buftype=nofile
+ca vsnote vnew \| setl buftype=nofile
+
 ca scratchthis setl buftype=nofile
 ca noscratchthis setl buftype=
 ca notethis setl buftype=nofile
