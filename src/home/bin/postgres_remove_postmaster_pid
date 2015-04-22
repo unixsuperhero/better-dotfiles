@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pm=/usr/local/var/postgres/postmaster.pid
+
+if [[ -f $pm ]]; then
+  rm -v "$pm"
+else
+  echo "$pm is not a file"
+fi

@@ -27,6 +27,9 @@ alias annotate="annotate -p before -e tests,fixtures"
 alias pomor="pomo_runner"
 alias pomol="pomo_listener"
 
+alias ss='rails server'
+alias sc='rails console'
+
 # global aliases
 alias -g CN='| cat -n'
 

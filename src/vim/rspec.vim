@@ -1,8 +1,7 @@
 
-let mapleader=' '
+let mapleader=','
 nnoremap <leader>f :call RunTests()<cr>
 nnoremap <leader>l :call RunTests(1)<cr>
-let mapleader=','
 
 function! RunTests(...)
   let in_test_file = match(expand("%"), '_spec.rb\(:\d\d*\)*$') != -1
@@ -13,7 +12,7 @@ function! RunTests(...)
     return
   end
 
-  let cmd=':!' . expand('~/bin/beatest') . ' ' . t:hero_rspec_file
+  let cmd=':silent !' . expand('~/bin/beatest') . ' ' . t:hero_rspec_file
 
   echom "cmd before: " . cmd
 
