@@ -10,6 +10,9 @@ module BranchPrefix
   def options
     @@options ||= OpenStruct.new.tap do |opts|
       opts.checkout = false
+      opts.list_branches = false
+      opts.delete_merged_branch = false
+      opts.force_delete_branch = false
       opts.print_current_branch = false
       opts.print_without_prefix = false
       opts.print_with_new_prefix = true
@@ -24,6 +27,18 @@ module BranchPrefix
 
       opts.on('-c', '--checkout', 'clone current branch with new prefix and check it out') do
         options.checkout = true
+      end
+
+      opts.on('-l', '--list', 'list all prefixed branches matching the current one') do
+        options.list_branches = true
+      end
+
+      opts.on('-d', '--delete', 'delete the branch with the given prefix if merged') do
+        options.delete_merged_branch = true
+      end
+
+      opts.on('-D', '--force-delete', 'force-delete the branch with the given prefix') do
+        options.force_delete_branch = true
       end
 
       opts.on('-p', '--print', 'print the current branch') do
@@ -49,6 +64,10 @@ module BranchPrefix
       return current_branch
     end
 
+    if options.list_branches
+      return `git branch`.lines.map(&:chomp).grep(Regexp.new(branch_name))
+    end
+
     return :error unless args.count > 0
 
     prefix = args.first
@@ -60,6 +79,14 @@ module BranchPrefix
       else
         `git checkout -b '#{new_branch}'`
       end
+    end
+
+    if options.delete_merged_branch
+      return `git branch -d '#{new_branch}'`
+    end
+
+    if options.force_delete_branch
+      return `git branch -D '#{new_branch}'`
     end
 
     if options.print_with_new_prefix
