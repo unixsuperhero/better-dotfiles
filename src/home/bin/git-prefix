@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+require 'optparse'
+require 'ostruct'
+
+module BranchPrefix
+  extend self
+
+  def options
+    @@options ||= OpenStruct.new.tap do |opts|
+      opts.checkout = false
+      opts.print_current_branch = false
+      opts.print_without_prefix = false
+      opts.print_with_new_prefix = true
+    end
+  end
+
+  def run(args=ARGV.clone, inp=$stdin, out=$stdout)
+    args.options { |opts|
+      opts.on('-s', '--switch', 'clone current branch with new prefix and switch to it') do
+        options.checkout = true
+      end
+
+      opts.on('-c', '--checkout', 'clone current branch with new prefix and check it out') do
+        options.checkout = true
+      end
+
+      opts.on('-p', '--print', 'print the current branch') do
+        options.print_current_branch = true
+        options.print_with_new_prefix = false
+      end
+
+      opts.on('-n', '--no-prefix', 'clone current branch with new prefix and check it out') do
+        options.print_without_prefix = true
+        options.print_with_new_prefix = false
+      end
+
+      opts.on('-h', '--help', 'print this message') do
+        puts opts
+      end
+    }.parse!
+
+    if options.print_without_prefix
+      return branch_name
+    end
+
+    if options.print_current_branch
+      return current_branch
+    end
+
+    return :error unless args.count > 0
+
+    prefix = args.first
+    new_branch = format('%s/%s', prefix, branch_name)
+
+    if options.checkout
+      if `git branch`[Regexp.new(new_branch)]
+        `git checkout '#{new_branch}'`
+      else
+        `git checkout -b '#{new_branch}'`
+      end
+    end
+
+    if options.print_with_new_prefix
+      return format('%s/%s', args.first, branch_name)
+    end
+  end
+
+  def current_ref
+    @@current_ref ||= `git symbolic-ref HEAD`.chomp
+  end
+
+  def current_branch
+    @@current_branch ||= current_ref.sub(/refs\/heads\//i, '')
+  end
+
+  def split_branch
+    @@split_branch ||= current_branch.split(?/)
+  end
+
+  def branch_has_prefix?
+    @@branch_has_prefix ||= split_branch.count > 1
+  end
+
+  def branch_is_namespaced?
+    @@branch_is_namespaced ||= split_branch.count > 2
+  end
+
+  def current_prefix
+    @@current_prefix ||= current_branch.split(?/, 2).first if branch_is_namespaced?
+  end
+
+  def branch_name
+    @@branch_name ||= if branch_has_prefix?
+      current_branch.split(?/, 2).last
+    else
+      current_branch
+    end
+  end
+end
+
+puts BranchPrefix.run
+
