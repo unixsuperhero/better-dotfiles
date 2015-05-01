@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+function hcd() { cd "${HOME}/hero/${1:-notes}"; }
+hcd "$@"
+
