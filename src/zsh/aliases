@@ -67,3 +67,4 @@ alias myip="myips"
 alias unhitch='hitch -u'
 alias make_pdf="cupsfilter -o fit-to-page -o cpi=18 -o lpi=11"
 
+alias gcpc='git cherry-pick --continue'

@@ -40,6 +40,12 @@ ZERO
   alias gra="git rebase --abort"
   alias grs="git rebase --skip"
 
+  alias gcv="git cherry -v"
+
+  alias gcpc="git cherry-pick --continue"
+  alias gcpa="git cherry-pick --abort"
+  alias gcps="git cherry-pick --skip"
+
   function grc() {
     git --no-pager grep -Ein '^[<>=]{7}([^<>=]|$)' && return -1
     git aa
