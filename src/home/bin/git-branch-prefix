@@ -68,8 +68,6 @@ module BranchPrefix
       return `git branch`.lines.map(&:chomp).grep(Regexp.new(branch_name))
     end
 
-    return :error unless args.count > 0
-
     prefix = args.first
 
     new_branch = prefix == nil && branch_name || format('%s/%s', prefix, branch_name)
