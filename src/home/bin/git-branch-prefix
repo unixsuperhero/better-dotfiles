@@ -71,7 +71,8 @@ module BranchPrefix
     return :error unless args.count > 0
 
     prefix = args.first
-    new_branch = format('%s/%s', prefix, branch_name)
+
+    new_branch = prefix == nil && branch_name || format('%s/%s', prefix, branch_name)
 
     if options.checkout
       if `git branch`[Regexp.new(new_branch)]
