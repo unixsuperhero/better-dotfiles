@@ -14,6 +14,7 @@ echo "$fullcmd"
 #$fullcmd
 #tmux neww -d -c "$d" -n "${winname}" "teefifo $@ && tmux renamew -t "${winname}" pass || tmux renamew -t "${winname}" FAIL; echo -n 'press ENTER to close'; read x"
 
-tmux neww -d -c "$d" -n "${winname}" "bash ${winname}.sh"
+# tmux neww -d -c "$d" -n "${winname}" "bash ${winname}.sh"
+tmux neww -d -c "$d" -n "${winname}" "zsh -i ${winname}.sh"
 
 #new-window (neww) [-adkP] [-c start-directory] [-F format] [-n window-name] [-t target-window] [command]
