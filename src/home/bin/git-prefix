@@ -1,60 +1,20 @@
 #!/usr/bin/env ruby
 
+require 'pry'
 require 'awesome_print'
+
 require 'optparse'
 require 'ostruct'
+require 'fileutils'
 
 module BranchPrefix
   extend self
 
-  def options
-    @@options ||= OpenStruct.new.tap do |opts|
-      opts.checkout = false
-      opts.list_branches = false
-      opts.delete_merged_branch = false
-      opts.force_delete_branch = false
-      opts.print_current_branch = false
-      opts.print_without_prefix = false
-      opts.print_with_new_prefix = true
-    end
-  end
-
+  attr_accessor :args, :stdinput, :stdoutput
   def run(args=ARGV.clone, inp=$stdin, out=$stdout)
-    args.options { |opts|
-      opts.on('-s', '--switch', 'clone current branch with new prefix and switch to it') do
-        options.checkout = true
-      end
+    @args, @stdinput, @stdoutput = args, inp, out
 
-      opts.on('-c', '--checkout', 'clone current branch with new prefix and check it out') do
-        options.checkout = true
-      end
-
-      opts.on('-l', '--list', 'list all prefixed branches matching the current one') do
-        options.list_branches = true
-      end
-
-      opts.on('-d', '--delete', 'delete the branch with the given prefix if merged') do
-        options.delete_merged_branch = true
-      end
-
-      opts.on('-D', '--force-delete', 'force-delete the branch with the given prefix') do
-        options.force_delete_branch = true
-      end
-
-      opts.on('-p', '--print', 'print the current branch') do
-        options.print_current_branch = true
-        options.print_with_new_prefix = false
-      end
-
-      opts.on('-n', '--no-prefix', 'clone current branch with new prefix and check it out') do
-        options.print_without_prefix = true
-        options.print_with_new_prefix = false
-      end
-
-      opts.on('-h', '--help', 'print this message') do
-        puts opts
-      end
-    }.parse!
+    parse_options
 
     if options.print_without_prefix
       return branch_name
@@ -93,32 +53,82 @@ module BranchPrefix
     end
   end
 
+  def parse_options
+    args.options { |opts|
+      opts.on('-s', '--switch', 'clone current branch with new prefix and switch to it') do
+        options.checkout = true
+      end
+
+      opts.on('-c', '--checkout', 'clone current branch with new prefix and check it out') do
+        options.checkout = true
+      end
+
+      opts.on('-l', '--list', 'list all prefixed branches matching the current one') do
+        options.list_branches = true
+      end
+
+      opts.on('-d', '--delete', 'delete the branch with the given prefix if merged') do
+        options.delete_merged_branch = true
+      end
+
+      opts.on('-D', '--force-delete', 'force-delete the branch with the given prefix') do
+        options.force_delete_branch = true
+      end
+
+      opts.on('-p', '--print', 'print the current branch') do
+        options.print_current_branch = true
+        options.print_with_new_prefix = false
+      end
+
+      opts.on('-n', '--no-prefix', 'clone current branch with new prefix and check it out') do
+        options.print_without_prefix = true
+        options.print_with_new_prefix = false
+      end
+
+      opts.on('-h', '--help', 'print this message') do
+        puts opts
+      end
+    }.parse!
+  end
+
+  def options
+    @options ||= OpenStruct.new.tap do |opts|
+      opts.checkout = false
+      opts.list_branches = false
+      opts.delete_merged_branch = false
+      opts.force_delete_branch = false
+      opts.print_current_branch = false
+      opts.print_without_prefix = false
+      opts.print_with_new_prefix = true
+    end
+  end
+
   def current_ref
-    @@current_ref ||= `git symbolic-ref HEAD`.chomp
+    @current_ref ||= `git symbolic-ref HEAD`.chomp
   end
 
   def current_branch
-    @@current_branch ||= current_ref.sub(/refs\/heads\//i, '')
+    @current_branch ||= current_ref.sub(/refs\/heads\//i, '')
   end
 
   def split_branch
-    @@split_branch ||= current_branch.split(?/)
+    @split_branch ||= current_branch.split(?/)
   end
 
   def branch_has_prefix?
-    @@branch_has_prefix ||= split_branch.count > 1
+    @branch_has_prefix ||= split_branch.count > 1
   end
 
   def branch_is_namespaced?
-    @@branch_is_namespaced ||= split_branch.count > 2
+    @branch_is_namespaced ||= split_branch.count > 2
   end
 
   def current_prefix
-    @@current_prefix ||= current_branch.split(?/, 2).first if branch_is_namespaced?
+    @current_prefix ||= current_branch.split(?/, 2).first if branch_is_namespaced?
   end
 
   def branch_name
-    @@branch_name ||= if branch_has_prefix?
+    @branch_name ||= if branch_has_prefix?
       current_branch.split(?/, 2).last
     else
       current_branch
