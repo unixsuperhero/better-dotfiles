@@ -175,7 +175,7 @@ ca mkfile Mkfile
 ca mkdir Mkdir
 ca scratch Scratch
 ca mat Match
-ca vb Vb
+ca vb vert sb
 ca ilp IListPrompt
 ca seq Seq
 ca getoutput CaptureOutput

@@ -58,42 +58,8 @@ nmap <leader>! yyp!!sh<cr>
 nmap <leader>u <Plug>(openbrowser-smart-search)
 vmap <leader>u <Plug>(openbrowser-smart-search)
 
-" Jump To Next Git Conflict
 
-nnoremap <leader>hgc  :exe('/^[<>=]\{7}/')<cr>
-nnoremap <leader>hgC  :exe('?^[<>=]\{7}?')<cr>
-
-" hero
-
-" Hero Notes
-
-"" Open a note from the timestamp only
-
-nm <leader>hon :vs ~/hero/notes/.index/<cword>.hdoc<cr>
-
-"" Open a bg window for importing a bunch of notes
-
-nnoremap <leader>ni  :!tbg 'note import'<cr>
-nnoremap <leader>hni :!tbg 'note import'<cr>
-
-nnoremap <leader>ns :HeroNoteSave<cr>
-vnoremap <leader>ns :HeroNoteSave<cr>
-
-" nnoremap <leader>hns !!note save<cr>
-nnoremap <leader>hns :HeroNoteSave<cr>
-vnoremap <leader>hns :HeroNoteSave<cr>
-
-nnoremap <leader>hnd o--- next note ---<cr>
-
-nnoremap <leader>hnm onnoremap <leader<c-v>>hncx o #tags #go #here<esc<c-v>>0i<esc>
-nnoremap <leader>hnm o:nnoremap <leader<c-v>>hncx o #start_typing_a_tag<esc<c-v>>0i<esc>0fsve<c-g>
-
-nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
-nnoremap <leader>hncn o #hero #todo #notes<esc>0i
-
-
-" unset mapleader
-" try setting it to comma
+" set mapleader to a comma (,) not a space
 
 let mapleader=','
 

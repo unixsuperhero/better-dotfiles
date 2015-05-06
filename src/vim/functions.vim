@@ -3,14 +3,6 @@
 
 " tmp/vimrc.local
 
-
-command! -range -nargs=0 HeroNoteSave <line1>,<line2>call NoteSave(<f-args>)
-function! NoteSave() range
-  let stamp=strftime("%Y%m%d%H%M%S")
-  exe a:firstline . "," . a:lastline . "!cat >/tmp/notes-" . stamp . "; echo '/tmp/notes-" . stamp . "'"
-  exe("!tbg 'cat /tmp/notes-" . stamp  . " | note import'")
-endfunction
-
 command! -nargs=* Jgrep :silent bufdo vimgrepadd <args> %
 
 function! <SID>SynStack()
