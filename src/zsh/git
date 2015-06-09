@@ -125,6 +125,10 @@ function dev_and_stage () {
 
   ## Have a searchable/parsable list of the files that have changed
 
+  function gbs() {
+    git branch | egrep -v '^\S' | egrep -o '\S.*' | egrep -i "$1"
+  }
+
   function gs() {
 
     gss | sed "s/...//;s/.* -> //" | grep "$1" | sort -u
