@@ -19,11 +19,6 @@ func! Eatchar(pat)
   return (c =~ a:pat) ? '' : c
 endfunc
 
-func! Eatchar(pat)
-  let c = nr2char(getchar(0))
-  return (c =~ a:pat) ? '' : c
-endfunc
-
 command! -nargs=1 ReplStr exe "s/SSS/" . <q-args>
 command! -nargs=1 ChangeNick exe '%s#\v(((real|user)_name|nick) [=] ["])[^"]*(["])#\1' . <q-args> . '\4#|w'
 command! NoMatches call clearmatches()
@@ -39,11 +34,64 @@ command! -nargs=* Vb exe "vert sb " . <q-args>
 command! -nargs=+ IListPrompt call <SID>IListPrompt(<q-args>)
 command! -range -nargs=* Seq <line1>,<line2>call Sequence(<f-args>)
 command! -complete=shellcmd -complete=file -complete=dir -nargs=+ CaptureOutput call CaptureOutput(<q-args>)
+command! -nargs=+ SwapText call <SID>SwapPatterns(<args>)
+command! -nargs=+ SwapTextF call <SID>SwapPatterns(<f-args>)
+command! -nargs=+ SwapTextQ call <SID>SwapPatterns(<q-args>)
 
 function! PutRecentFiles()
   r!cat /var/jearsh/env/recent.vim
   "r!cat /var/jearsh/env/recent.vim | head -15
 endfunction
+
+function! s:SwapPatternsTwo(patterns)
+  let pat_a = a:patterns
+  let pat_b = a:patterns
+  if strlen(pat_a) == 0 || strlen(pat_b) == 0
+    echom '2 args are required'
+    return
+  endif
+
+  let pat_a = substitute(pat_a, '/^\/\|\/$/', '', 'g')
+  let pat_b = substitute(pat_a, '/^\/\|\/$/', '', 'g')
+  echom 'pat_a => "' . pat_a . '"'
+  echom 'pat_b => "' . pat_b . '"'
+
+  return 0
+
+  let v:errmsg = ''
+  exe 'ilist! ' . pat
+  if strlen(v:errmsg) == 0
+    let nr = input('Which one: ')
+    if nr =~ '\d\+'
+      exe 'ijump! ' . nr . pat
+    endif
+  endif
+endfunction "tagsrch.txt:673
+
+function! s:SwapPatterns(pattern_a, pattern_b)
+  let pat_a = a:pattern_a
+  let pat_b = a:pattern_b
+  if strlen(pat_a) == 0 || strlen(pat_b) == 0
+    echom '2 args are required'
+    return
+  endif
+
+  let pat_a = substitute(pat_a, '/^\/\|\/$/', '', 'g')
+  let pat_b = substitute(pat_a, '/^\/\|\/$/', '', 'g')
+  echom 'pat_a => "' . pat_a . '"'
+  echom 'pat_b => "' . pat_b . '"'
+
+  return 0
+
+  let v:errmsg = ''
+  exe 'ilist! ' . pat
+  if strlen(v:errmsg) == 0
+    let nr = input('Which one: ')
+    if nr =~ '\d\+'
+      exe 'ijump! ' . nr . pat
+    endif
+  endif
+endfunction "tagsrch.txt:673
 
 function! s:IListPrompt(pattern)
   let pat = a:pattern
