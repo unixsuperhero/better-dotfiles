@@ -39,6 +39,17 @@ ab cur_HMS =strftime("%H%M%S")
 
 ab cur_YmdHMS =strftime("%Y%m%d%H%M%S")
 
+" modified filenames
+
+ca specfile %:r:s!^\(\<app\/\)\?!spec/!_spec.rb
+ca Xspecfile <c-r>=expand('%:r:s!^\(\<app\/\)\?!spec/!')<cr>_spec.rb
+ca Xr <c-r>=expand('%:r')<cr><c-r>=Eatchar('\s')<cr>
+ca Xh <c-r>=expand('%:h')<cr><c-r>=Eatchar('\s')<cr>
+ca Xt <c-r>=expand('%:t')<cr><c-r>=Eatchar('\s')<cr>
+ca Xp <c-r>=expand('%:p')<cr><c-r>=Eatchar('\s')<cr>
+
+" /modified filenames
+
 ca rmthis exe('bun \| !rm -i ' . expand('%'))
 ca sothis so %
 ca qthis !hque %:p
