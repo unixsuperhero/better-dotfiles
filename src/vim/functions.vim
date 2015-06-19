@@ -43,7 +43,7 @@ function! PutRecentFiles()
   "r!cat /var/jearsh/env/recent.vim | head -15
 endfunction
 
-function! s:SwapPatterns(pattern_a, pattern_b)
+function! s:SwapPatterns(pattern_a, pattern_b, flags) range
   let pat_a = a:pattern_a
   let pat_b = a:pattern_b
   if strlen(pat_a) == 0 || strlen(pat_b) == 0
@@ -56,9 +56,23 @@ function! s:SwapPatterns(pattern_a, pattern_b)
   echom 'pat_a => "' . pat_a . '"'
   echom 'pat_b => "' . pat_b . '"'
 
-  exe(a:firstline . ',' . a:lastline . 's/' . pat_a . '/z' . pat_b . 'z/gce')
-  exe(a:firstline . ',' . a:lastline . 's/z\@<!' . pat_b . 'z\@<!/' . pat_a . '/gce')
-  exe(a:firstline . ',' . a:lastline . 's/z' . pat_b . 'z/' . pat_b . '/gce')
+  let line_range = a:firstline . ',' . a:lastline
+  let pattern_a = line_range . 's/' .       pat_a . '/z' .     pat_b . 'z/' . flags
+  let pattern_b = line_range . 's/z\@<!' .  pat_b . 'z\@!/' .  pat_a . '/'  . flags
+  let pattern_c = line_range . 's/z' .      pat_b . 'z/' .     pat_b . '/'  . flags
+
+
+  " let patterns_two = a:firstline . ',' . a:lastline . 's/' . pat_b . '/z' . pat_a . 'z/|'
+  " let patterns_two .= 's/z\@<!' . pat_a . 'z\@!/' . pat_b . '/|'
+  " let patterns_two .= 's/z' . pat_a . 'z/' . pat_a . '/gce'
+
+  " echom 'PATTERNS_TWO'
+  " exe(patterns_two)
+
+  echom 'PATTERNS => "' . patterns . '"'
+
+  exe(patterns)
+
   return 0
 
   let v:errmsg = ''

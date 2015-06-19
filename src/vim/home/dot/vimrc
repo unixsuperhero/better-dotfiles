@@ -23,5 +23,6 @@ call SourceFile(expand('~/dotfiles/vim/autocmds.vim'))
 
 " call SourceFile(expand('~/dotfiles/vim/fix-rsi.vim'))
 call SourceFile(expand('~/dotfiles/vim/rspec.vim'))
+call SourceFile(expand('~/dotfiles/vim/hero.vim'))
 
 set clipboard=unnamed

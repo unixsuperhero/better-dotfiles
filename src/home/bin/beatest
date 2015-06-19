@@ -13,5 +13,5 @@ cmd="${rspec_cmd:-bundle exec rspec}"
 winname=$(printf "testing%d" $wname $(tmux list-windows | egrep "^\d\d*:\s\s*${wname}" | wc -l))
 # echo "teefifo $cmd $@ && tmux renamew -t "${winname}" pass || tmux renamew -t "${winname}" FAIL; echo -n 'press ENTER to close'; read x"
 echo "teefifo $cmd $@ && tmux renamew -t "${winname}" pass || tmux renamew -t "${winname}" FAIL; echo -n 'press ENTER to close'; read x" | tee ${winname}.sh
-tmux neww -t bea -c "$d" -n "${winname}" "bash ${winname}.sh; rm ${winname}.sh"
+tmux neww -d -t bea -c "$d" -n "${winname}" "bash ${winname}.sh; rm ${winname}.sh"
 
