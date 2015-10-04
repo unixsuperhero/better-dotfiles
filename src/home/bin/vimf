@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+
+require 'optparse'
+require 'ostruct'
+
+module MainCommand
+  extend self
+
+  attr_accessor :args, :stdinput, :stdoutput
+  def run(args=ARGV.clone, inp=$stdin, out=$stdout)
+    @args, @stdinput, @stdoutput = args, inp, out
+
+    file = nil
+    if system(*%w{git rev-parse --show-toplevel})
+      file = `git ls-files | fzf -i`
+    else
+      file = `find . -type f | fzf -i`
+    end
+
+    exit 1 if file == nil
+
+    system 'vim', file.chomp
+    # parse_options
+
+    # if options.show_help
+    #   return args.options
+    # end
+  end
+
+  def parse_options
+    args.options { |opts|
+      opts.on('-h', '--help', 'print this message') do
+        options.show_help = true
+      end
+    }.parse!
+  end
+
+  def options
+    @options ||= OpenStruct.new.tap do |opts|
+      # default options go here
+      # or pass them to #new as a hash
+
+      opts.show_help = false
+    end
+  end
+
+  # ...helper methods go here...
+
+end
+
+puts MainCommand.run
+
