@@ -1,10 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'awesome_print'
-
-require 'optparse'
-require 'ostruct'
-
 module MainCommand
   extend self
 
@@ -24,26 +19,6 @@ module MainCommand
       system 'vim', '-O', *files
     end
   end
-
-  def parse_options
-    args.options { |opts|
-      opts.on('-h', '--help', 'print this message') do
-        options.show_help = true
-      end
-    }.parse!
-  end
-
-  def options
-    @options ||= OpenStruct.new.tap do |opts|
-      # default options go here
-      # or pass them to #new as a hash
-
-      opts.show_help = false
-    end
-  end
-
-  # ...helper methods go here...
-
 end
 
 puts MainCommand.run
