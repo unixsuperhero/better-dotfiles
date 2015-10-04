@@ -12,21 +12,17 @@ module MainCommand
   def run(args=ARGV.clone, inp=$stdin, out=$stdout)
     @args, @stdinput, @stdoutput = args, inp, out
 
-    file = nil
-    if system(*%w{git rev-parse --show-toplevel})
-      file = `git ls-files | fzf -i`
-    else
-      file = `find . -type f | fzf -i`
-    end
+    file = `(git ls-files 2>/dev/null || find . -type f) | fzf -i -m`
 
     exit 1 if file == nil
 
-    system 'vim', file.chomp
-    # parse_options
+    files = file.split(/\n/).compact.reject{|fn| fn.strip.length == 0 }
 
-    # if options.show_help
-    #   return args.options
-    # end
+    if files.count > 3
+      system 'vim', *files
+    else
+      system 'vim', '-O', *files
+    end
   end
 
   def parse_options
