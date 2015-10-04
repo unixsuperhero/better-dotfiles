@@ -1,0 +1,3 @@
+#!/bin/bash
+
+tmux selectp -t "$(tmux lsp | sed -En '$s/:.*//p')"
