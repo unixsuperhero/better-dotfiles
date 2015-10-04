@@ -5,12 +5,29 @@
 
 command! -nargs=* Jgrep :silent bufdo vimgrepadd <args> %
 
-function! <SID>SynStack()
+
+function! SynStack()
   if !exists("*synstack")
     return
   endif
   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunc
+nmap <leader>z :call SynStack()<CR>
+
+" Zoom / Restore window.
+function! s:ZoomToggle() abort
+    if exists('t:zoomed') && t:zoomed
+        execute t:zoom_winrestcmd
+        let t:zoomed = 0
+    else
+        let t:zoom_winrestcmd = winrestcmd()
+        resize
+        vertical resize
+        let t:zoomed = 1
+    endif
+endfunction
+command! ZoomToggle call s:ZoomToggle()
+nnoremap <silent> <Space>z :ZoomToggle<CR>
 
 " tmp/vimrc.josh
 

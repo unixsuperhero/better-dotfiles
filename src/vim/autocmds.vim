@@ -62,4 +62,7 @@ augroup vimrc
   au Syntax * RainbowParenthesesLoadSquare
   au Syntax * RainbowParenthesesLoadBraces
 
+  au FileType git      hi link diffAdded listM06
+  au FileType git      hi link diffRemoved ErrorMsg
+  au FileType git      set nolist
 augroup END

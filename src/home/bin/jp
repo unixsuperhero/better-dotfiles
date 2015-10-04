@@ -96,7 +96,7 @@ case $1 in
   (*)
 
     for a; do
-      open "http://beta.jisho.org/search/${a}"
+      open "http://jisho.org/search/${a//[[:space:]]/+}"
     done
 
     return 0

@@ -4,6 +4,20 @@ source_file "$HOME/.bashrc.functions.rails"
 source_file "$HOME/.bashrc.functions.test_suite"
 source_file "$HOME/.bashrc.functions.temporary"
 
+function mc () {
+  for a; do
+    mkdir -pv "$a"
+    cd "$a"
+  done
+}
+
+function cm () {
+  for a; do
+    mkdir -pv "$a"
+    cd "$a"
+  done
+}
+
 def ()
 {
   if [[ $SHELL =~ 'zsh' ]]; then

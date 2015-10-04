@@ -15,7 +15,7 @@ METADATA
 
 watched_file="watched.grep"
 global_watched_file="$HOME/logs/global.watched.grep"
-recent_file="/Users/jearsh/logs/recently_watched"
+recent_file="$HOME/logs/recently_watched"
 
 function vlc_next_episode()
 {

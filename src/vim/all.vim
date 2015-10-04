@@ -47,13 +47,13 @@ nmap gF :vert wincmd F<CR>
 
 " Other peoples' handy stuff
 " <leader> is '\' by default
-nmap <leader>z :call <SID>SynStack()<CR>
-function! <SID>SynStack()
-  if !exists("*synstack")
-    return
-  endif
-  echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
-endfunc
+" nmap <leader>z :call SynStack()<CR>
+" function! SynStack()
+"   if !exists("*synstack")
+"     return
+"   endif
+"   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+" endfunc
 
 if filereadable(expand('~/.vimrc.josh'))
   source ~/.vimrc.josh

@@ -23,7 +23,7 @@ list_episodes() {
 
   [[ -n "$1" ]] && unwatched_dir="$1"
 
-  cd "$unwatched_dir"
+  # cd "$unwatched_dir"
 
   echo
   find "$PWD" -iname $watched_file | grep -v "$HOME/logs/watched.grep" | while read wf
@@ -37,7 +37,7 @@ list_episodes() {
     fi
   done | sed "s@$HOME/logs/@@" | less
 
-  cd "$start_dir"
+  # cd "$start_dir"
 }
 
 list_episodes "$@"

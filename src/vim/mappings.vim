@@ -10,8 +10,6 @@ let mapleader=' '
 nmap gf :vert wincmd f<CR>
 nmap gF :vert wincmd F<CR>
 
-nmap <leader>z :call <SID>SynStack()<CR>
-
 nmap ,p :!rspec --format=progress %<cr>
 nmap ,f :!rspec %<cr>
 nmap ,l :exec("!rspec %:" . line("."))<cr>

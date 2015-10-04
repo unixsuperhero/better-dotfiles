@@ -14,39 +14,46 @@ ab functinos functions
 
 iab ToC Table of Contents
 
-ab fmtYmd %Y%m%d
-ab fmtHMS %H%M%S
-ab fmtYmdHMS %Y%m%d%H%M%S
+" Date Related
 
-ab fmt_Ymd %Y-%m-%d
-ab fmt_HMS %H:%M:%S
+ab fmtYmd    %Y%m%d<c-r>=Eatchar('\s')<cr>
+ab fmtHMS    %H%M%S<c-r>=Eatchar('\s')<cr>
+ab fmtYmdHMS %Y%m%d%H%M%S<c-r>=Eatchar('\s')<cr>
+
+ab fmtymd    %Y%m%d<c-r>=Eatchar('\s')<cr>
+ab fmthms    %H%M%S<c-r>=Eatchar('\s')<cr>
+ab fmtymdhms %Y%m%d%H%M%S<c-r>=Eatchar('\s')<cr>
+
+ab fmt_Ymd    %Y-%m-%d
+ab fmt_HMS    %H:%M:%S
 ab fmt_YmdHMS %Y-%m-%d %H:%M:%S
 
-ab cur_time =strftime("%Y-%m-%d %H:%M:%S")
+ab cur_time      =strftime("%Y-%m-%d %H:%M:%S")
 ab cur_timestamp =strftime("%s")
-ab cur_epoch =strftime("%s")
+ab cur_epoch     =strftime("%s")
 
-ab cur_Y =strftime("%Y")
-ab cur_y =strftime("%y")
-ab cur_m =strftime("%m")
-ab cur_d =strftime("%d")
+ab cur_Y   =strftime("%Y")
+ab cur_y   =strftime("%y")
+ab cur_m   =strftime("%m")
+ab cur_d   =strftime("%d")
 ab cur_Ymd =strftime("%Y%m%d")
 
-ab cur_H =strftime("%H")
-ab cur_M =strftime("%M")
-ab cur_S =strftime("%S")
+ab cur_H   =strftime("%H")
+ab cur_M   =strftime("%M")
+ab cur_S   =strftime("%S")
 ab cur_HMS =strftime("%H%M%S")
 
 ab cur_YmdHMS =strftime("%Y%m%d%H%M%S")
 
 " modified filenames
 
-ca specfile %:r:s!^\(\<app\/\)\?!spec/!_spec.rb
+ca specfile  %:r:s!^\(\<app\/\)\?!spec/!_spec.rb
 ca Xspecfile <c-r>=expand('%:r:s!^\(\<app\/\)\?!spec/!')<cr>_spec.rb
-ca Xr <c-r>=expand('%:r')<cr><c-r>=Eatchar('\s')<cr>
-ca Xh <c-r>=expand('%:h')<cr><c-r>=Eatchar('\s')<cr>
-ca Xt <c-r>=expand('%:t')<cr><c-r>=Eatchar('\s')<cr>
-ca Xp <c-r>=expand('%:p')<cr><c-r>=Eatchar('\s')<cr>
+ca Xr        <c-r>=expand('%:r')<cr><c-r>=Eatchar('\s')<cr>
+ca Xe        <c-r>=expand('%:e')<cr><c-r>=Eatchar('\s')<cr>
+ca Xh        <c-r>=expand('%:h')<cr><c-r>=Eatchar('\s')<cr>
+ca Xt        <c-r>=expand('%:t')<cr><c-r>=Eatchar('\s')<cr>
+ca Xp        <c-r>=expand('%:p')<cr><c-r>=Eatchar('\s')<cr>
 
 " /modified filenames
 
