@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+
+# 3rd party requirements
+require 'awesome_print'
+require 'pry'
+require 'optparse'
+require 'singleton'
+require 'mkmf'
+
+# H command requirements
+module H
+  class Config
+    include Singleton
+
+    attr_accessor :original_path, :path
+    attr_accessor :hero_path
+
+    def initialize(options={})
+      @original_path = Dir.pwd
+      @path = options[:path] || Dir.pwd
+      @hero_path = format('%s/hero', ENV['HOME'])
+    end
+  end
+
+  def self.config
+    @config ||= Config.instance
+  end
+end
+
+module H
+  class Command
+    class << self
+      def run(args=ARGV.clone, stdin=$stdin)
+        new(args, stdin).tap(&:run)
+      end
+    end
+
+    attr_accessor :original_args, :args, :stdin
+    attr_accessor :subcommand
+
+    def initialize(args=ARGV.clone, stdin=$stdin)
+      @original_args = args.clone
+      @subcommand = args.shift
+      @args = args
+      @stdin = stdin
+    end
+
+    def run
+      case subcommand
+      # when /n(otes?)?/i
+      #   Note.run(args, stdin)
+      when /path/i
+        system("h-path", *args)
+      else
+        if Env.h_command?(subcommand)
+          puts '%s command was found' % subcommand
+          system("h-#{subcommand}", *args)
+        else
+          puts format('%s command not found...', subcommand)
+        end
+      end
+    end
+  end
+
+  def self.run(args=ARGV.clone, stdin=$stdin)
+    Command.run(args, stdin)
+  end
+end
+
+module H
+  class Note < Command
+    def run
+      case subcommand
+      when /list/i
+        return 'ran "list" subcommand'
+        List.run(args, stdin)
+      when /save/i
+        Save.run(args, stdin)
+      when /p(rojects?)?/i
+        H::Project.run(args, stdin)
+      else
+        puts format('%s command not found...', subcommand)
+      end
+    end
+  end
+end
+
+module H
+  module Env
+    extend self
+
+    def path
+      ENV['PATH']
+    end
+
+    def h_command?(bin)
+      find_executable("h-#{bin}").tap do
+        File.unlink('mkmf.log') if File.exist?('mkmf.log')
+      end
+    end
+  end
+
+  def self.env
+    Env
+  end
+end
+
+module H
+end
+
+H.run
+

@@ -23,13 +23,20 @@ module MainCommand
       sopts = special_options.find{|sop| %w{ with: from: using: }.include?(sop.first) }
       special_options.reject!{|sop| %w{ with: from: using: }.include?(sop.first) }
       file = `#{sopts[1..-1].join(' ')} | fzf -i -m`
+      exit 1 unless $?.success?
     else
       file = `(git ls-files 2>/dev/null || find . -type f) | fzf -i -m`
+      exit 1 unless $?.success?
     end
 
     exit 1 if file == nil
 
     files = file.split(/\n/).compact.reject{|fn| fn.strip.length == 0 }
+
+    if special_options.empty?
+      puts files
+      exit 0
+    end
 
     special_options.each do |opt|
       subcmd = opt.shift
@@ -40,28 +47,30 @@ module MainCommand
         if other_opts[/%s/]
           cmd = other_opts.gsub(/%s/, safe_files)
           puts all_cmd: cmd
-          `#{cmd}`
+          system(cmd)
         else
           cmd = "#{other_opts} #{safe_files}"
           puts all_at_end_of_cmd: cmd
-          `#{cmd}`
+          system(cmd)
         end
       when 'runeach:'
         if other_opts[/%s/]
           files.each do |f|
             cmd = other_opts.gsub(/%s/, ?' + f + ?')
             puts each_cmd: cmd
-            `#{cmd}`
+            system(cmd)
           end
         else
           files.each do |f|
             cmd = "#{other_opts} '#{f}'"
             puts each_at_end_of_cmd: cmd
-            `#{cmd}`
+            system(cmd)
           end
         end
       end
     end
+
+    puts
   end
 
   def parse_options
