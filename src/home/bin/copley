@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if tmux ls | egrep -i copley; then
+  tmux a -t copley
+else
+  tmux new -s copley -c ~/repos/copley/www "$@"
+fi
+
+
