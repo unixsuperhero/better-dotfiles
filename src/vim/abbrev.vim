@@ -206,3 +206,5 @@ ca repl ReplStr
 ca changenick ChangeNick
 ca nick ChangeNick
 
+ca ef FZF -m
+ca vsf FZF -m

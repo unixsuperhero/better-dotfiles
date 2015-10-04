@@ -27,3 +27,4 @@ call SourceFile(expand('~/dotfiles/vim/hero.vim'))
 
 set clipboard=unnamed
 
+set rtp+=/usr/local/Cellar/fzf/0.10.2
