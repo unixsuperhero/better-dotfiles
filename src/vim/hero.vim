@@ -32,6 +32,9 @@ nnoremap <leader>hnd o--- next note ---<cr>
 nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
 nnoremap <leader>hncn o #hero #todo #notes<esc>0i
 
+nnoremap <leader>hnv $:vs <cWORD><cr>
+nnoremap <leader>hnh $:sp <cWORD><cr>
+
 let mapleader=','
 
 command! -range -nargs=0 HeroNoteSave <line1>,<line2>call NoteSave(<f-args>)
