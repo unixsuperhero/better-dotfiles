@@ -13,17 +13,29 @@ require 'ostruct'
 module MainCommand
   extend self
 
+  COPLEY_HOME=format('%s/repos/copley/www', ENV['HOME'])
+
   attr_accessor :args, :stdinput, :stdoutput
   attr_accessor :piped_data
   attr_accessor :special_options
+  attr_accessor :pwd, :original_pwd
   def run(args=ARGV.clone, input=$stdin, output=$stdout)
     @args, @stdinput, @stdoutput = args, input, output
+
+    @original_pwd = Dir.pwd
+    Dir.chdir(COPLEY_HOME)
+    @pwd = Dir.pwd
 
     parse_options
 
     subcommand = args.shift
 
     case subcommand
+    when 'dir', 'cdto', 'cd', 'path', 'home'
+      Dir.chdir COPLEY_HOME
+      printf '%s', COPLEY_HOME
+    when 'run'
+      system(* args)
     when ?t, 'tmux'
       if system('tmux ls | egrep -i copley')
         system(* %w{tmux a -t copley})
@@ -32,78 +44,31 @@ module MainCommand
       end
     when ?i, 'issues'
       system(* %w{ghi list})
-    when 'mki', 'makeissue', 'mkissue'
+    when 'mki', 'mkissue', 'makei', 'makeissue', 'make-issue'
       system(* build_github_issues_command)
+    when 'label', 'labels', 'listlabels'
+      system(* %w{ghi label --list}, *args)
     else
       puts(sprintf 'Unknown Subcommand: %s', subcommand)
-    end
-
-    exit 0
-
-    file = nil
-    if not input.tty?
-      @piped_data = input.read.chomp
-      file = `echo '#{@piped_data}' | fzf -i -m`
-    elsif special_options.map(&:first).any?{|sof| %w{ with: from: using: }.include?(sof) }
-      sopts = special_options.find{|sop| %w{ with: from: using: }.include?(sop.first) }
-      special_options.reject!{|sop| %w{ with: from: using: }.include?(sop.first) }
-      file = `#{sopts[1..-1].join(' ')} | fzf -i -m`
-      exit 1 unless $? == 0
-    else
-      file = `(git ls-files 2>/dev/null || find . -type f) | fzf -i -m`
-      exit 1 unless $?.success?
-    end
-
-    exit 1 if file == nil
-
-    files = file.split(/\n/).compact.reject{|fn| fn.strip.length == 0 }
-
-    if special_options.empty?
-      puts files
-      exit 0
-    end
-
-    special_options.each do |opt|
-      subcmd = opt.shift
-      other_opts = opt.join(" ")
-      safe_files = ?' + files.join("' '") + ?'
-      case subcmd
-      when 'run:'
-        if other_opts[/%s/]
-          cmd = other_opts.gsub(/%s/, safe_files)
-          puts all_cmd: cmd
-          system(cmd)
-        else
-          cmd = "#{other_opts} #{safe_files}"
-          puts all_at_end_of_cmd: cmd
-          system(cmd)
-        end
-      when 'runeach:'
-        if other_opts[/%s/]
-          files.each do |f|
-            cmd = other_opts.gsub(/%s/, ?' + f + ?')
-            puts each_cmd: cmd
-            system(cmd)
-          end
-        else
-          files.each do |f|
-            cmd = "#{other_opts} '#{f}'"
-            puts each_at_end_of_cmd: cmd
-            system(cmd)
-          end
-        end
-      end
     end
 
     puts
   end
 
   def build_github_issues_command
+    cmd = []
+    values = []
     labels = nil
+    assign_to = nil
     milestone = 1
+    claim = false
     special_options.each do |opt|
       subcmd = opt.shift
       case subcmd
+      when ':claim'
+        claim = true
+      when 'assign:', 'assign_to:'
+        assign_to = opt.shift
       when 'labels:', 'tags:'
         labels = opt.map(&:strip).map{|o| o.sub(/,?$/,'') }.join(?,)
       when 'milestone:'
@@ -111,9 +76,47 @@ module MainCommand
       end
     end
 
+    formatted_cmd = []
+    ## issue name
+    # cmd << 'ghi open -m "%s"'
+    # values << @args.join(' ')
+
+    formatted_cmd << format('ghi open -m "%s"', @args.join(' '))
+
+    ## milestone id
+    # cmd << '-M %d'
+    # values << milestone
+
+    formatted_cmd << format('-M %d', milestone)
+
+    ## labels/tags
+    # unless labels == nil
+    #   cmd << '-L %s'
+    #   values << labels
+    # end
+
+    formatted_cmd << format('-L %s', labels) unless labels == nil
+
+    ## assign to
+    # unless assign_to == nil
+    #   cmd << '--assign %s'
+    #   values << assign_to
+    # end
+
+    formatted_cmd << format('--assign %s', assign_to) unless assign_to == nil
+
+    formatted_cmd << format('--claim') if claim == true
+
+    return formatted_cmd.join(' ')
+
+    ## --- nothing is ran below this line ---
+
+    cmd = [cmd.join(' ')] + values
+    return format(* cmd)
     message = @args.join(' ')
     ghi = 'ghi open -m "%s" -M %d'
     ghi += ' -L %s' unless labels == nil
+    ghi += ' --assign %s' unless assign_to == nil
     format(ghi, message, milestone, labels)
   end
 
@@ -124,7 +127,9 @@ module MainCommand
     same_arg = 0
     while i < args.length
       sopts = []
-      next i += 1 unless (arg=args[i]).strip[/:$/]
+
+      next i += 1 unless (arg=args[i]).strip[/:$/] || (arg=args[i]).strip[/:claim/i]
+
       if last_arg == arg
         same_arg += 1
       else
@@ -135,9 +140,13 @@ module MainCommand
       break if same_arg > 3
 
       sopts << arg
-      sopts += args[(i+1)..-1].take_while do |sarg|
-        not sarg.strip[/:$/]
+
+      if arg != ':claim'
+        sopts += args[(i+1)..-1].take_while do |sarg|
+          not (sarg.strip[/:$/] || sarg.strip[/^:claim/])
+        end
       end
+
       @special_options.push sopts
       args.slice!(i, sopts.length)
     end
