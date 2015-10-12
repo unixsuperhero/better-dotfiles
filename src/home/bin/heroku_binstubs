@@ -1,0 +1,221 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'awesome_print'
+require 'ostruct'
+require 'fileutils'
+
+module MainCommand
+  extend self
+
+  attr_accessor :args, :stdinput, :stdoutput
+  attr_accessor :piped_data
+  attr_accessor :special_options
+  def run(args=ARGV.clone, input=$stdin, output=$stdout)
+    @args, @stdinput, @stdoutput = args, input, output
+
+    parse_options
+
+    subcommand = args.shift
+
+    case subcommand
+    when 'generate'
+      generate_binstubs
+    when 'db','db:migrate','migrate','migrations','dbm'
+      run_migrations
+    when 'console', 'c', 'con', 'sc'
+      run_rails_console
+    when 'rake'
+      run_rake_command
+    when 'logs','log','l'
+      tail_logs
+    when 'restart', 'ps:restart'
+      restart_app
+    when 'config:get', 'getconfig', 'configs'
+      list_config_vars
+    when 'config:set', 'setconfig', 'addconfig'
+      save_config_vars
+    when 'run'
+      run_command
+    when 'rebase'
+      rebase_local_branch
+    when 'push'
+      push_local_branch
+    when 'deploy'
+      deploy_app
+    end
+  end
+
+  def deploy_app
+  end
+
+  def heroku_command(hcmd)
+    cmd = format('heroku %s %s %s %s', hcmd, args.join(' '), app? ? '-a' : '-r', command_name)
+    printf "command: %s\n", cmd
+    exec cmd
+  end
+
+  def run_rake_command(*tasks)
+    heroku_command(format('run rake %s', tasks.any? ? tasks.join(' ') : args.join(' ')))
+    # cmd = format('heroku run rake %s %s %s',
+    #              tasks.join(' '),
+    #              app? ? '-a' : '-r',
+    #              command_name)
+    # printf "command: %s\n", cmd
+    # exec cmd
+  end
+
+  def tail_logs
+    heroku_command('logs -t')
+    # cmd = format('heroku logs -t %s %s',
+    #              app? ? '-a' : '-r',
+    #              command_name)
+    # printf "command: %s\n", cmd
+    # exec cmd
+  end
+
+  def restart_app
+    heroku_command('ps:restart')
+  end
+
+  def list_config_vars
+    heroku_command('config')
+  end
+
+  def save_config_vars
+    heroku_command('config:set')
+  end
+
+  def run_command(*task)
+    cmd = format('heroku run %s %s %s',
+                 task.join(' '),
+                 app? ? '-a' : '-r',
+                 command_name)
+    printf "command: %s\n", cmd
+    exec cmd
+  end
+
+  def rebase_local_branch
+    cmd = format('git pull --rebase %s master', remote_name)
+    printf "command: %s\n", cmd
+    exec cmd
+  end
+
+  def remote_name
+    remote? ? command_name : app_to_remote
+  end
+
+  def app_to_remote
+    git_remotes.lines.grep(command_name + '.git').map{|rem| rem[/\w+/] }.first
+  end
+
+  def push_local_branch
+    system(format('git push %s HEAD', remote_name))
+  end
+
+  def deploy_app
+    system('git pull --rebase -p %s master', remote_name)
+  end
+
+  def generate_binstubs
+    filenames = apps + remotes
+    path = 'stubs'
+    FileUtils.mkdir_p(path)
+    filenames.each do |fn|
+      src = __FILE__
+      dest = File.join(path, fn)
+      FileUtils.ln(src, dest)
+    end
+  end
+
+  def command_name
+    File.basename(__FILE__)
+  end
+
+  def app?
+    apps.include? command_name
+  end
+
+  def remote?
+    remotes.include? command_name
+  end
+
+  def run_migrations
+    return run_rake_command('db:migrate')
+    cmd = format('heroku run rake db:migrate %s %s',
+                 app? ? '-a' : '-r',
+                 command_name)
+    printf "command: %s\n", cmd
+    exec cmd
+  end
+
+  def run_rails_console
+    return run_command('rails console')
+    cmd = format('heroku run rails console %s %s',
+                 app? ? '-a' : '-r',
+                 command_name)
+    printf "command: %s\n", cmd
+    exec cmd
+  end
+
+  def reserved_words
+    %w{ heroku }
+  end
+
+  def remotes
+    git_remotes.lines.map do |gr|
+      gr[/\w+/]
+    end.sort.uniq.reject do |r|
+      reserved_words.include?(r)
+    end
+  end
+
+  def apps
+    git_remotes.lines.map{|gr|
+      next unless path = gr[/heroku(app)?[.]com\S+/i]
+      basename = File.basename(path).sub(/[.]git$/, '')
+    }.compact.sort.uniq
+  end
+
+  def git_remotes
+    @git_remotes ||= `git remote -v`
+  end
+
+  def parse_options
+    @special_options ||= []
+    i = 0
+    last_arg = :not_started
+    same_arg = 0
+    while i < args.length
+      sopts = []
+      next i += 1 unless (arg=args[i]).strip[/:$/]
+      if last_arg == arg
+        same_arg += 1
+      else
+        same_arg = 0
+        last_arg = arg
+      end
+
+      break if same_arg > 3
+
+      sopts << arg
+      sopts += args[(i+1)..-1].take_while do |sarg|
+        not sarg.strip[/:$/]
+      end
+      @special_options.push sopts
+      args.slice!(i, sopts.length)
+    end
+  end
+
+  def options
+    @options ||= OpenStruct.new.tap do |opts|
+      # default options go here
+      # or pass them to #new as a hash
+
+      opts.show_help = false
+    end
+  end
+end
+
+puts MainCommand.run
+

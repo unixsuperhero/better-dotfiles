@@ -1,1 +1,1574 @@
-/Users/macbookpro/repos/hnotes/bin/note
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+
+require 'fileutils'
+require 'pry'
+require 'pathname'
+require 'singleton'
+require 'yaml'
+require 'active_support'
+require 'active_support/core_ext'
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/configuration.rb
+# ------------------------------------------------------------------
+
+module CliTasks
+  class Configuration
+    include Singleton
+    attr_accessor :created_by
+    def load(file=nil)
+      @file = file || '%s/.config.yml' % default_path
+      @created_by = config[:created_by]
+    end
+
+    def config
+      @config ||= defaults.merge(YAML.load_file(@file)) rescue defaults
+    end
+
+    def path
+      config[:path]
+    end
+
+    def default_path
+      defaults[:path]
+    end
+
+  private
+
+    def defaults
+      {
+        path: '%s/hero/notes' % ENV['HOME'],
+      }.with_indifferent_access
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/world.rb
+# ----------------------------------------------------------
+
+module CliTasks
+  class World
+    include Singleton
+    attr_writer :stories, :tags
+    attr_accessor :use_index
+
+    def configuration
+      @configuration ||= Configuration.instance.tap(&:load)
+    end
+    alias_method :config, :configuration
+
+    def reset
+      config.instance_variables.each do |ivar|
+        config.instance_variable_set(ivar, nil)
+      end
+
+      instance_variables.each do |ivar|
+        instance_variable_set(ivar, nil)
+      end
+    end
+
+    def stories
+      @stories ||= []
+    end
+
+    def tags
+      @tags ||= (stories || []).inject({}) do |hash,story|
+        story.tags.each do |t|
+          current_stories = hash.fetch(t, [])
+          current_stories << story
+          hash.merge! t => current_stories
+        end
+        hash
+      end
+    end
+
+    def avoid_editor?
+      return true if ENV.has_key? 'VIM'
+      return true unless $stdout.tty?
+      false
+    end
+
+    def task_path
+      '%s/.index' % path
+    end
+
+    def temp_path
+      '%s/tempfiles' % task_path
+    end
+
+    def path
+      @path ||= config.path
+    end
+  end
+
+  def self.world
+    World.instance.tap do |w|
+      Runner.run w.task_path
+      w.use_index ||= false
+    end
+  end
+
+  def self.stories
+    world.stories
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/simple_dsl.rb
+# ---------------------------------------------------------------
+
+  class SimpleDSL
+    class << self
+      def values(*names)
+        names.each do |name|
+          define_method(name) do
+            "#{name}".to_sym
+          end
+        end
+      end
+
+      def fields(*names)
+        names.each do |name|
+          define_method(name) do |val|
+            instance_variable_set "@#{name}".to_sym, val
+          end
+        end
+      end
+
+      def groups(*names)
+        names.each do |name|
+          define_method(name) do |*vals|
+            instance_variable_set "@#{name}".to_sym, vals
+          end
+        end
+      end
+
+      def custom(*names, &block)
+        names.each do |name|
+          define_method(name, &block)
+        end
+      end
+    end
+  end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/story_reader.rb
+# -----------------------------------------------------------------
+
+class StoryReader < SimpleDSL
+  def initialize(name, &block)
+    @name = name.split(/\s*\n+\s*/).join(' ')
+    instance_eval &block
+  end
+
+  values :queued, :started, :finished,
+         :accepted, :rejected, :delivered,
+         :weekdays, :weekends
+
+  fields :id, :status, :points, :description, :restricted_to, :created_by
+  groups :assigned_to
+
+  # groups :tags
+  custom :tags do |*args|
+    args.flat_map do |tags|
+      @tags ||= []
+      @tags += tags.to_s.split(/(?<!\\),/).map(&:strip)
+    end
+  end
+
+  custom :comment do |author, body| (@comments ||= []) << {author: author, body: body} end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/story.rb
+# ----------------------------------------------------------
+
+module CliTasks
+  class Story
+    attr_accessor :file
+    attr_reader :id, :status, :points, :name, :description, :restricted_to
+    def initialize(builder)
+      builder.instance_variables.each{|name|
+        instance_variable_set name, builder.instance_variable_get(name)
+      }
+    end
+
+    def id
+      @id ||= File.basename(file).sub(/[.]s?md$/, '')
+    end
+
+    def tags
+      return @tags if @tags != nil
+      @tags ||= []
+      @tags = @tags.sort
+    end
+
+    def comments
+      @comments ||= []
+    end
+
+    def created_by
+      @created_by ||= []
+      @created_by &&= Array(@created_by)
+    end
+
+    def assigned_to
+      @assigned_to ||= []
+    end
+
+    def self.build(name, &block)
+      Story.new StoryReader.new(name, &block)
+    end
+  end
+
+  def story(name, &block)
+    stories << Story.build(name, &block)
+  end
+
+  def stories
+    CliTasks.world.stories
+  end
+end
+
+extend CliTasks
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/index.rb
+# ----------------------------------------------------------
+
+module CliTasks
+  class Index
+    BASE_INDEX = {
+      'stories' => {
+        # story.file => story.data,
+      },
+      'tags' => {
+        # tag => story_array,
+      }
+    }
+
+    def self.read
+      yaml = IO.read index_file
+      data = YAML.load yaml
+    end
+
+    def self.build
+      world.stories.inject(BASE_INDEX) do |index,story|
+        BASE_INDEX['stories'].merge!(story.file => story)
+        story.tags.each do |tag|
+          tag = tag.to_s
+          current_tag = BASE_INDEX['tags'].fetch(tag, [])
+          BASE_INDEX['tags'].merge!(tag => current_tag)
+          if (downtag = tag.to_s.downcase) != tag
+            current_tag = BASE_INDEX['tags'].fetch(downtag, [])
+            current_tag << story.id
+            BASE_INDEX['tags'].merge!(downtag => current_tag)
+          end
+        end
+        BASE_INDEX
+      end
+    end
+
+    def self.index_file
+      File.join(world.task_path, 'world.yml').tap do |name|
+        IO.write name, BASE_INDEX.to_yaml unless File.exist?(name)
+      end
+    end
+
+    def self.update
+      IO.write index_file, build.to_yaml
+    end
+
+    def self.world
+      @world ||= World.instance
+    end
+  end
+
+  def self.index
+    @@index ||= Index.read
+  end
+end
+
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/runner.rb
+# -----------------------------------------------------------
+
+module CliTasks
+  class Runner
+    def self.run!(*files)
+      world.reset
+      run *files
+    end
+
+    def self.run(*files)
+      return world.stories if (world.stories || []).any?
+      ( files.any? ? files.flatten : [world.task_path].flatten ).flat_map{|file|
+        Dir[File.directory?(file) && [file,'/*.{s,}md'].join || file]
+      }.map{|file|
+        begin
+          note = Note.from_file(file)
+        rescue => e
+          ap file: file
+          binding.pry
+          ap file: file
+        end
+        note_status = note.metadata['status']
+        hide_note = false
+        if note_status
+          status_path = File.join(world.task_path, note.metadata['status'])
+          new_file = File.join(status_path, File.basename(file))
+          FileUtils.mkdir_p(status_path)
+          unless file == new_file
+            FileUtils.cp(file, new_file)
+            FileUtils.rm(file)
+          end
+          file = new_file
+          hide_note = true if note_status == 'finished'
+        end
+        next if hide_note == true
+        world.stories << note
+        world.stories.last.file = file
+      }.tap{ Index.update }
+    end
+
+    def self.world
+      @world ||= World.instance
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/link_builder.rb
+# -----------------------------------------------------------------
+
+module CliTasks
+  class LinkBuilder
+    class << self
+      def all
+        LinkBuilder.new.tap do |links|
+          links.remove_all_symlinks
+          links.by_tag all: true
+          # links.by_metadata
+          # links.to_all
+          links.remove_empty_directories
+
+          # links.by_status
+          # links.by_creator
+          # links.by_assignment
+          # links.by_restriction
+        end
+      end
+    end
+
+    attr_reader :world
+    def initialize
+      @world = CliTasks.world
+      @path = @world.path
+      Runner.run @world.task_path
+    end
+
+    def remove_empty_directories
+      Dir[ [@path, '/**/'].join(?/) ].each do |dir|
+        next unless File.directory?(dir)
+        next if File.basename(dir)[/^[.]/]
+        next unless (Dir.entries(dir) - %w{ . .. }).empty?
+        puts "Removing %s..." % dir
+        Dir.rmdir(dir)
+      end
+    end
+
+    def remove_all_symlinks
+      Dir[ [@path, '**/*'].join(?/) ].each do |file|
+        next if File.directory?(file)
+        FileUtils.rm(file)
+      end
+    end
+
+    def create_link(type, dir, story)
+      type = sanitize(type.dup) if type
+      dir = sanitize(dir.to_s.dup) || return
+      dir = File.join(type, dir) if type
+      dest = File.join(@path, dir)
+      link story, dest
+    end
+
+    def create_tag_link(type, dir, story)
+      type = sanitize(type.dup) if type
+      dir = sanitize_tag(dir.to_s.dup) || return
+      dir = File.join(type, dir) if type
+      dest = File.join(@path, dir)
+      link story, dest
+    end
+
+    def by_metadata
+      world.stories.each do |story|
+        story.metadata.each do |k,v|
+          create_link(k, v, story)
+          #create_link('all', metadata, story)
+        end
+      end
+    end
+
+    def to_all
+      world.stories.each do |story|
+        create_link(nil, 'all', story)
+      end
+    end
+
+    def by_tag(opts={ all: true })
+      world.tags.each do |tag,stories|
+        stories.each do |story|
+
+          create_tag_link(nil, tag, story)
+          next unless opts.fetch(:all, false)
+          create_tag_link(nil, 'all', story)
+        end
+      end
+    end
+
+    def by_status
+      world.stories.each do |story|
+        create_link('status', story.status, story)
+        # create_link('all', story.status, story)
+      end
+    end
+
+    def by_creator
+      world.stories.each do |story|
+        Array(story.created_by).each do |creator|
+          create_link('created_by', creator, story)
+          # create_link('all', creator, story)
+        end
+      end
+    end
+
+    def by_restriction
+      world.stories.each do |story|
+        create_link('restricted_to', story.restricted_to, story)
+        # create_link('all', story.restricted_to, story)
+      end
+    end
+
+    def by_assignment
+      world.stories.each do |story|
+        Array(story.assigned_to).each do |assignment|
+          create_link('assigned_to', assignment, story)
+          # create_link('all', assignment, story)
+        end
+      end
+    end
+
+    private
+
+    def sanitize(name)
+      return unless name.is_a?(String) || name.is_a?(Symbol)
+      String(name.to_s.dup).gsub(/(\W|_)+/, '_').sub(/^_*/, '').sub(/_*$/, '')
+    end
+
+    def sanitize_tag(name)
+      return unless name.is_a?(String) || name.is_a?(Symbol)
+      String(name.to_s.dup).gsub(/([^\w\/]|_)+/, '_').sub(/^_*/, '').sub(/_*$/, '')
+    end
+
+    def append_index(story, dest)
+      dest += '.md'
+      dir = File.dirname(dest)
+      FileUtils.mkdir_p(File.expand_path(dir))
+
+      add_heading = ! File.exists?(File.expand_path(dest))
+
+      File.open(File.expand_path(dest), 'a') do |f|
+
+        if add_heading
+          f.puts ''
+          f.puts format(' %-80s |  %s', 'Title', 'Filename')
+          f.puts format('-%-80s | -%s-', format('%80s','').gsub(/./,?-), format('%24s','').gsub(/./,?-))
+        end
+
+        src = Pathname.new(File.expand_path(story.file))
+        f.puts format(' %-80s |  %s', story.short_name[0,80], src.relative_path_from(Pathname.new(File.expand_path(@path))))
+      end
+    end
+
+    def link(story, dest)
+      rv = append_index story, dest
+      return rv
+      FileUtils.mkdir_p File.expand_path(dest)
+      src = Pathname.new(File.expand_path(story.file))
+
+      return false if File.exist?(File.join(dest, sanitize(story.short_name.to_s.dup)))
+      FileUtils.ln_s src.relative_path_from(Pathname.new(File.expand_path(dest))), File.join(dest, sanitize(story.short_name.to_s.dup))
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/viewer.rb
+# -----------------------------------------------------------
+
+module CliTasks
+  class Viewer
+    attr_accessor :files
+    attr_accessor :notes
+
+    def initialize(*args)
+      @files = args
+      if args.any?
+        Runner.run! args
+      else
+        Runner.run! world.task_path
+      end
+    end
+
+    def self.tag_groups(*args)
+      new(*args).tag_groups
+    end
+
+    def self.story(s)
+      story(s)
+    end
+
+    def self.screen(*args)
+      new(*args).screen
+    end
+
+    def self.print(*args)
+      viewer = new(*args)
+      # ap args: args, files: viewer.files, stories: viewer.stories
+      viewer.print
+    end
+
+    def print
+      puts screen
+    end
+
+    def tag_groups
+      stories.flat_map do |story|
+        story.tagged_notes
+      end.group_by do |story|
+        story.tag
+      end.sort_by{|k,v| k }.flat_map do |group,grouped_stories|
+        lines = [
+        ]
+        lines += grouped_stories.sort_by do |gs|
+          gs.name[/[a-z]/i].downcase
+        end.map do |s|
+          story(s)
+        end
+
+        [
+          '',
+          format(" |  TAG: | %s (%d)\n", group, grouped_stories.count),
+          lines, #.join(separator),
+          '',
+        ] #.join(outer_separator)
+      end
+    end
+
+    def screen
+      lines = [header]
+      lines += stories.reverse.map{|s|
+        story(s)
+      }
+      lines.join(separator)
+    end
+
+    def header
+      sprintf(" %-80s | %-s\n", :name, :tags)
+    end
+
+    def self.wrap_in_column(str='',width=10)
+      str.to_s.scan(/\S.{0,#{width - 1}}(?!\S)/)
+    end
+
+    def wrap_in_column(str='',width=10)
+      self.class.wrap_in_column(str, width)
+    end
+
+    def self.total_lines(*cols)
+      [cols].flatten(1).map(&:length).max
+    end
+
+    def total_lines(*cols)
+      self.class.total_lines(*cols)
+    end
+
+    def self.separator
+      sprintf(" %-82s-+-%-s\n", ?-*82, ?-*29)
+    end
+
+    def separator
+      @separator ||= self.class.separator
+    end
+
+    def self.outer_separator
+      sprintf(" %-111s===\n", ?=*111)
+    end
+
+    def outer_separator
+      self.class.outer_separator
+    end
+
+    def simple_story(s)
+      self.class.simple_story(s)
+    end
+
+    def self.simple_story(s)
+      # make a method for each of the _col methods
+      #status_col = wrap_in_column(s.status, 10)
+      #id_col = wrap_in_column(s.id, 20)
+      #points_col = wrap_in_column(?* * s.points.to_i, 6)
+
+      name_width = (ENV['COLUMNS'] || 100).to_i - (13 + 1 + 1 + 1)  # with of id plus spaces between columns
+      format(" %-13s %-#{name_width}s \n", s.id, s.name.slice(0,name_width))
+    end
+
+    def story(s)
+      return simple_story(s)
+      self.class.story(s)
+    end
+
+    def self.story(s)
+      return simple_story(s)
+      # make a method for each of the _col methods
+      #status_col = wrap_in_column(s.status, 10)
+      #id_col = wrap_in_column(s.id, 20)
+      #points_col = wrap_in_column(?* * s.points.to_i, 6)
+      name_col = wrap_in_column(s.name, 72)
+      name_col << ''
+      tags_col = wrap_in_column(s.tags.sort * "\n", 30)
+
+      name_labels = ['Name:']
+      #total = total_lines(status_col, id_col, points_col, name_col, tags_col)
+      #total = total_lines(id_col, name_col, tags_col)
+      total = total_lines(name_col, tags_col)
+
+      lines = Array.new(total).map{ " | %5s | %-72s | %-s\n" }
+
+      data = lines.zip(name_labels, name_col, tags_col)
+      # data.push([" ------ + %-72s +\n", ?- * 72])
+      data.push([" | File: | %-72s |\n", s.file])
+      data.map{|r| sprintf(*r) }.join
+      # data += separator
+      # data += format(" File: %s\n", s.file)
+    end
+
+    def stories
+      @stories ||= world.stories
+    end
+
+    def world
+      CliTasks.world
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/version.rb
+# ------------------------------------------------------------
+
+module CliTasks
+  VERSION = '0.0.8' unless const_defined? :VERSION
+
+  if ENV['CLIT_ENV'] == 'test'
+    TEST_VERSION = '0.0.1' unless const_defined? :TEST_VERSION
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/note.rb
+# ---------------------------------------------------------
+
+module CliTasks
+  class Note
+    attr_accessor :data, :lines, :file
+    attr_accessor :metadata, :name, :tags
+
+    class << self
+      def from_command_line(args=ARGV.clone, stdin=$stdin.clone)
+        notes = [*args].push stdin
+        notes.map &Note.method(:new)
+      end
+
+      def subset(*notes)
+        notes.flatten.flat_map do |note|
+          next note if note.is_a? Note
+          from_file note
+        end
+      end
+
+      def from_string(data, name=nil)
+        Note.new data, name
+      end
+
+      def from_file(name)
+        if File.exist?(name)
+          from_string(IO.read(name), name) unless File.directory?(name)
+        else
+          from_string(name)
+        end
+      end
+
+      def from_stdin(io)
+        return nil if io.tty?
+        from_string io.read
+      end
+
+      def split(data='')
+        notes = (data || '').split(/(\A|\n)name:\s*|^---\s*next.note\s*---\n/i)
+        notes.map do |str|
+          from_string(str)
+        end
+      end
+    end
+
+    def initialize(data='', file=nil)
+      @data = data
+      @file = file
+      @lines = @data.lines.map(&:chomp)
+
+      extract_tags
+      extract_metadata
+      extract_name
+    end
+
+    def id
+      @id ||= File.basename(file).sub(/[.]s?md$/, '')
+    end
+
+    def extract_tags
+      @tags ||= data.scan(/(?<=(?<!\S)#)\w\S*/).sort # should match 'nothis #this #also/this/too'
+    end
+
+    def extract_metadata
+      @metadata ||= lines.take_while do |line|
+        line[metadata_line_regex] # /^\w+:\s*\w|^\s*$/]
+      end.inject({}) do |h,line|
+        md = line.match(/^(\w+)\s*:\s*(\w.*)$/)
+        md &&= Hash[md[1], md[2]]
+        h.merge md || {}
+      end
+    end
+
+    def extract_name
+      @name ||= extract_body.first
+    end
+
+    def short_name
+      extract_name[/^\s*(.{0,79}(?!\S))/]
+    rescue => e
+      puts({file: file}.ai(plain: true, raw: true, index: false))
+    end
+
+    def extract_body
+      @body ||= lines.drop_while do |line|
+        line[metadata_line_regex] # /^[\w\s]+:\s*\w|^\s*$/]
+      end
+    end
+
+    def tagged_notes
+      tags.map do |tag|
+        TaggedNote.new(data, file).tap do |tn|
+          tn.tag = tag
+        end
+      end
+    end
+
+    private
+
+    def metadata_line_regex
+      /^\w+:\s*\w|^\s*$/
+    end
+  end
+
+  class TaggedNote < Note
+    attr_accessor :tag
+  end
+end
+
+#p = HeroParser.new ARGV.first || $stdin
+#ap [:@name, :@metadata, :@tags, :@body].map{|x| p.instance_variable_get(x) }, raw: true, index: false
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/note.rb
+# ---------------------------------------------------------
+
+module CliTasks
+  class Note
+    attr_accessor :data, :lines, :file
+    attr_accessor :metadata, :name, :tags
+
+    class << self
+      def from_command_line(args=ARGV.clone, stdin=$stdin.clone)
+        notes = [*args].push stdin
+        notes.map &Note.method(:new)
+      end
+
+      def subset(*notes)
+        notes.flatten.flat_map do |note|
+          next note if note.is_a? Note
+          from_file note
+        end
+      end
+
+      def from_string(data, name=nil)
+        Note.new data, name
+      end
+
+      def from_file(name)
+        if File.exist?(name)
+          from_string(IO.read(name), name) unless File.directory?(name)
+        else
+          from_string(name)
+        end
+      end
+
+      def from_stdin(io)
+        return nil if io.tty?
+        from_string io.read
+      end
+
+      def split(data='')
+        notes = (data || '').split(/(\A|\n)name:\s*|^---\s*next.note\s*---\n/i)
+        notes.map do |str|
+          from_string(str)
+        end
+      end
+    end
+
+    def initialize(data='', file=nil)
+      @data = data
+      @file = file
+      @lines = @data.lines.map(&:chomp)
+
+      extract_tags
+      extract_metadata
+      extract_name
+    end
+
+    def id
+      @id ||= File.basename(file).sub(/[.]s?md$/, '')
+    end
+
+    def extract_tags
+      @tags ||= data.scan(/(?<=(?<!\S)#)\w\S*/).sort # should match 'nothis #this #also/this/too'
+    end
+
+    def extract_metadata
+      @metadata ||= lines.take_while do |line|
+        line[metadata_line_regex] # /^\w+:\s*\w|^\s*$/]
+      end.inject({}) do |h,line|
+        md = line.match(/^(\w+)\s*:\s*(\w.*)$/)
+        md &&= Hash[md[1], md[2]]
+        h.merge md || {}
+      end
+    end
+
+    def extract_name
+      @name ||= extract_body.first
+    end
+
+    def short_name
+      extract_name[/^\s*(.{0,79}(?!\S))/]
+    rescue => e
+      puts({file: file}.ai(plain: true, raw: true, index: false))
+    end
+
+    def extract_body
+      @body ||= lines.drop_while do |line|
+        line[metadata_line_regex] # /^[\w\s]+:\s*\w|^\s*$/]
+      end
+    end
+
+    def tagged_notes
+      tags.map do |tag|
+        TaggedNote.new(data, file).tap do |tn|
+          tn.tag = tag
+        end
+      end
+    end
+
+    private
+
+    def metadata_line_regex
+      /^\w+:\s*\w|^\s*$/
+    end
+  end
+
+  class TaggedNote < Note
+    attr_accessor :tag
+  end
+end
+
+#p = HeroParser.new ARGV.first || $stdin
+#ap [:@name, :@metadata, :@tags, :@body].map{|x| p.instance_variable_get(x) }, raw: true, index: false
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/note_io.rb
+# -----------------------------------------------------------------
+module CliTasks
+  # module IO
+  module NoteIO
+    extend self
+
+    def read_file(filename)
+      return filename unless File.exist?(filename)
+      return filename if File.directory?(filename)
+      IO.read filename
+    end
+
+    def read_stdin(io=$stdin)
+      return nil if io.tty?
+      io.read
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/project_file.rb
+# -----------------------------------------------------------------
+
+module CliTasks
+  class ProjectFile
+    class << self
+      def generate(path=CliTasks.world.path, options={})
+        new(path, options).tap(&:generate)
+      end
+
+      def generate_and_open(path=CliTasks.world.path, options={})
+        new(path, options).tap(&:generate_and_open)
+      end
+
+      def generate_and_print(path=CliTasks.world.path, options={})
+        new(path, options).tap(&:generate_and_print)
+      end
+    end
+
+    attr_accessor :original_path, :path, :options
+
+    def initialize(path=world.path, options={})
+      @original_path = Dir.pwd
+      @path = path
+      @options = options
+    end
+
+    def generate
+      Dir.chdir(path)
+      ret = save_file
+      Dir.chdir(original_path)
+      ret
+    end
+
+    def generate_and_open
+      generate.tap{
+        if $stdout.tty?
+          open_file
+        else
+          print_file
+        end
+      }
+      # Dir.chdir(path)
+      # ret = save_file
+      # open_file
+      # Dir.chdir(original_path)
+      # ret
+    end
+
+    def generate_and_print
+      generate.tap{ print_file }
+      # Dir.chdir(path)
+      # ret = save_file
+      # print_file
+      # Dir.chdir(original_path)
+      # ret
+    end
+
+    def file_list(dir='')
+      pattern = dir.sub(/\/+$/, ?/) + ?*
+      files = []
+      dirs = []
+      Dir[pattern].each do |f|
+        next if File.basename(f)[/^[.]/]
+        if File.directory?(f)
+          f = f.sub(/\/*$/, ?/)
+          sublist = file_list(f)
+          label = format(" TAG: %s (%d)", f.sub(/\/+$/, ''), sublist.count)
+          labels = [
+            format('%s-', label.gsub(/./, ?-)),
+            label,
+            format('%s-', label.gsub(/./, ?-)),
+          ]
+          dirs += labels.unshift('').push('') + sublist
+        else
+          files << f
+        end
+      end
+      files + dirs
+    end
+
+    def extract_header_and_footer
+      @original_header = File.exist?(filename) ? `sed -En '1,/^--- HEADER ---$/p' #{filename}` : ''
+      @original_footer = File.exist?(filename) ? `sed -En '/^--- FOOTER ---$/,$p' #{filename}` : ''
+    end
+
+    def file_data
+      extract_header_and_footer
+      data = [
+        @original_header,
+        '',
+        "Project Directory: %s" % Dir.pwd,
+        '',
+        Viewer.tag_groups(world.task_path),
+        '',
+        '------',
+        '',
+        file_list,
+        '',
+        @original_footer,
+        '',
+        # Viewer.screen(world.task_path)
+      ].flatten * "\n"
+    end
+
+    def filename
+      'project-index'
+    end
+
+    def absolute_path
+      File.join(path, filename)
+    end
+
+    def save_file
+      IO.write(filename, file_data)
+    end
+
+    def open_file
+      system("vim", filename)
+    end
+
+    def print_file
+      puts file_data
+    end
+
+    def world
+      @world ||= CliTasks.world
+    end
+  end
+end
+
+# FILE: /Users/macbookpro/repos/hnotes/lib/clitasks/commands.rb
+# -------------------------------------------------------------
+
+module CliTasks
+  class Commands
+    class << self
+      def commit(message='auto-saving notes')
+        reindex
+        if $stdout.tty?
+          addall = %x{git add --all}
+          files = %x{git status -s}.lines.map(&:chomp)
+          files = files.map{|f| f.sub(/^.../, '').sub(/.* -> /, '') }
+          files_changed = files.count
+          csf = files.join(', ')
+          commit = %x{git commit -m '#{files_changed} files changed: #{csf.length > 140 ? csf[0,140] + '...' : csf} @ #{Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')}'}
+          # puts_remote = %x{git push origin --all &>/dev/null}
+        else
+          addall = %x{git add --all}
+          files = %x{git status -s}.lines.map(&:chomp)
+          files = files.map{|f| f.sub(/^.../, '').sub(/.* -> /, '') }
+          files_changed = files.count
+          csf = files.join(', ')
+          commit = %x{git commit -m '#{files_changed} files changed: #{csf.length > 140 ? csf[0,140] + '...' : csf} @ #{Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')}'}
+          # puts_remote = %x{git push origin --all &>/dev/null}
+        end
+      end
+
+      def reindex
+        Runner.run!
+      end
+
+      def backup
+        %x{git push origin --all}
+      end
+
+      def commit_and_backup
+        commit
+        backup
+      end
+
+      def editor
+        ed = ENV['EDITOR']
+        ed ||= 'vim -O'
+        ed[/^\s*vim\s*$/] ? 'vim -O' : ed
+      end
+
+      def safe_scratch
+        f = next_tempfile
+        open_in_editor! f
+        File.unlink(f)
+      end
+
+      def scratch
+        f = Tempfile.new('tasks')
+        open_in_editor! f.path
+        f.unlink
+        f.close
+      end
+
+      def edit(*args)
+        open_in_editor grep(*args)
+      end
+
+      def print_files(*files)
+        files.flatten.tap do |file_list|
+          file_list.each{|file| print_file file }
+        end
+      end
+
+      def print_file(f)
+        printf "\n"
+        header = sprintf(" %s ", f)
+        printf "%s\n", header.gsub(/./, ?-)
+        printf "%s\n", header
+        printf "%s\n", header.gsub(/./, ?-)
+        puts IO.read(f)
+        puts
+      end
+
+      def open_in_editor(*files)
+        unless world.avoid_editor?
+          return open_in_editor!(*files)
+        end
+
+        puts 'not opening because stdout is not a terminal or you are already in a vim session'
+        puts
+        print_files *files
+      end
+
+      def open_in_editor!(*files)
+        files.flatten.tap do |file_list|
+          system(sprintf("%s %s", editor, files.flatten.join(" ")))
+        end
+      end
+
+      def with_tempfile(prefix='notes')
+        tmpfile = tempfile
+        yield(tempfile) if block_given?
+        tempfile.unlink!
+        tempfile.close
+      end
+
+      def tempfile(prefix='notes')
+        Tempfile.new(prefix)
+      end
+
+      def search(*args)
+        if (args[0] || '').strip =~ /-(s|-simple)/i
+          puts grep(*args.tap(&:shift))
+        else
+          Viewer.print(*grep(*args))
+        end
+      end
+
+      def next_tempfile(counter=0)
+        FileUtils.mkdir_p(world.temp_path) unless File.exist?(world.temp_path)
+        filename = '%s/%s%02d.md' % [world.temp_path, Time.now.to_i, counter]
+        File.exist?(filename) ? next_filename(counter + 1) : filename
+      end
+
+      def next_filename(counter=0)
+        filename = '%s/%s%02d.md' % [world.task_path, Time.now.to_i, counter]
+        File.exist?(filename) ? next_filename(counter + 1) : filename
+      end
+
+      def write(file, data='')
+        FileUtils.mkdir_p(world.task_path)
+        File.new(file, 'w').tap{|f| f.write(data) }.close
+        puts file
+        file
+      end
+
+      def mcreate(*tasks)
+        open_in_editor *(tasks.flat_map do|task|
+          next_filename.tap do |fn|
+            write fn, task.data
+          end
+        end)
+      end
+
+      def create(args=ARGV, stdin=$stdin)
+        files = save_to_disk collect(args, stdin)
+        open_in_editor *files
+      end
+
+      def save(args=ARGV, stdin=$stdin)
+        files = save_to_disk collect(args, stdin)
+      end
+
+      def save_to_disk(tasks)
+        tasks.flat_map do|task|
+          next_filename.tap do |fn|
+            write fn, task.data
+          end
+        end
+      end
+
+      def test(args=ARGV, stdin=$stdin)
+        puts collect(args, stdin).ai(raw: true)
+      end
+
+      # def collect(args=ARGV, stdin=$stdin)
+      #   notes = args.map(&Note.method(:from_file))
+      #   notes << Note.from_stdin(stdin)
+      #   notes = [Note.from_string('')] if notes.compact.none?
+      #   notes.compact
+      # end
+
+      def collect(args=ARGV, stdin=$stdin)
+        notes = []
+        notes += args.flat_map do |arg|
+          Note.split NoteIO.read_file(arg)
+        end
+        notes += Note.split NoteIO.read_stdin(stdin)
+        collected = notes.flatten.compact
+        if collected.count == 0
+          f = next_tempfile
+          system sprintf("%s %s", editor, f)
+          collected = Note.split NoteIO.read_file(f)
+        end
+        collected
+      end
+
+#       def create(*args)
+#         name = args.join ' '
+#         names = split_unescaped(name, ?;, trim: true)
+#         mcreate *names
+#       rescue => e
+#         binding.pry
+#         puts 'some kind of exception happened'
+#       end
+
+
+      def index_glob(dir='')
+        pattern = dir.sub(/\/+$/, ?/) + ?*
+        files = []
+        dirs = []
+        Dir[pattern].each do |f|
+          next if File.basename(f)[/^[.]/]
+          if File.directory?(f)
+            f = f.sub(/\/*$/, ?/)
+            dirs += ['', f] + index_glob(f)
+          else
+            files << f
+          end
+        end
+        files + dirs
+      end
+
+      def index
+        ProjectFile.generate_and_open(world.path)
+      end
+
+      def update_index
+        ProjectFile.generate(world.path)
+      end
+
+      def print_index
+        ProjectFile.generate_and_print(world.path)
+      end
+
+      def rebuild
+        LinkBuilder.all
+      end
+
+      def world
+        @world ||= CliTasks.world
+      end
+
+      def stories
+        world.stories
+      end
+
+      def tags(*tag_list)
+        puts t = if tag_list.any?
+          tag_list.flat_map{|tag|
+            stories_with_tag = if world.use_index
+              stories = CliTasks.index['tags'][tag]
+              stories = stories.any? ? stories : CliTasks.index['tags'][tag.downcase]
+            else
+              world.stories.select{|n| n.tags.any?{|nt| nt[/^#{tag.strip}$/i] } }
+            end
+            # stories_with_tag = Index.tags[tag] # world.stories.select{|n| n.tags.any?{|nt| nt[/^#{tag.strip}$/i] } }
+            next [] unless stories_with_tag.any?
+            [
+              '',
+              Viewer.outer_separator,
+              '   TAG: %s' % tag,
+              Viewer.outer_separator,
+              world.stories.select{|n| n.tags.include?(tag) }.map(&Viewer.method(:story)).join, #(Viewer.separator),
+              Viewer.outer_separator,
+              '',
+            ]
+          }
+        else
+          tags = if world.use_index
+            CliTasks.index['tags'].keys.sort
+          else
+            world.stories.flat_map(&:tags).sort.uniq
+          end
+        end
+      end
+
+      def list(*args)
+        if args.any?
+          Viewer.print *args
+        else
+          Viewer.print '%s' % world.task_path
+        end
+      end
+
+      private
+
+      def grep(*args)
+        if world.use_index == true
+          args.inject(CliTasks::Index.read['stories']){|results,query|
+            results.select{|story| story.data =~ [/#{query.downcase}/i] }
+          }.map{|s| s.file }
+        else
+          args.inject([world.task_path]){|files,arg|
+            #pp     "grep -ril '#{arg}' -- '#{files.join "' '"}'"
+            grep = `grep -ril '#{arg}' -- '#{files.join "' '"}'`
+            lines = grep.lines.map(&:chomp)
+          }
+        end
+      end
+
+      def checklog(msg, &block)
+        return block.call unless $stdout.tty?
+        print "#{msg}..."
+        block.call
+        puts 'done'
+      end
+
+      def named_tags(name='')
+        name.scan(/(?<=\s[#])\S\S*/).flatten
+      end
+
+      def template(name='CHANGEME', tags=nil)
+        tags ||= named_tags name
+        data = <<-STORY
+          story %q(#{name}) do
+            status queued
+            #restricted_to weekdays
+            #restricted_to weekends
+
+            tags '#{tags * ', '}'
+
+            points 1
+            created_by 'unassigned'
+            assigned_to :unassigned
+
+            description <<-"__TASK_DESCRIPTION__"
+
+            __TASK_DESCRIPTION__
+          end
+        STORY
+        pattern = data.scan(/\A(\s+)/).uniq.min_by{|s| s.length }.first
+        data.gsub(/^#{pattern}/, '')
+      end
+
+
+      def split_unescaped(text, str, opts={}) # &block too
+        text.split(/(?<!\\)#{str}/).map do |s|
+          s = s.gsub(/\\(?=#{str})/, '')
+          s = s.sub(/^\s*/,'').sub(/\s*$/,'') if opts[:trim] == true
+          s = yield s if block_given?
+          s
+        end
+      end
+    end
+  end
+end
+
+
+module CliTasks
+end
+
+
+class String
+  def split_unescaped(str, opts={}, &block)
+    self.split(/(?<!\\)#{str}/).map do |s|
+      s = s.gsub(/\\(?=#{str})/, '')
+      s = s.sub(/^\s*/,'').sub(/\s*$/,'') if opts[:trim] == true
+      s = yield s if block_given?
+      s
+    end
+  end
+end
+
+module Hero
+
+  class NoteCommand
+    attr_accessor :original_args, :args, :stdin, :io
+    attr_accessor :subcommand
+
+    def self.run(args=ARGV.clone, io=$stdin)
+      new(args, io).process_subcommand
+    end
+
+    def initialize(args=ARGV.clone, io=$stdin)
+      @original_args = args.clone
+      @subcommand = args.shift || 'list'
+
+      @args = args
+      @io = io
+    end
+
+    def stdin
+      io
+    end
+
+    def command
+      subcommand
+    end
+
+    def is_edit_bin_subcommand?
+      command[/--?e(d(i(t)?)?)?/] ? true : false
+    end
+
+    def edit_bin
+      task_bin = File.realpath(__FILE__)
+      task_bin_dir = File.dirname(task_bin)
+      git_dir = `cd #{task_bin_dir}; git rev-parse --show-toplevel`.chomp
+      Dir.chdir(git_dir)
+      # files = []
+      # if args.count > 0
+      #   args.flat_map do |arg|
+      #     files += Dir["{bin,lib}/**/*.rb"].grep Regexp.new('.*' + arg.scan(/./).join('.*'))
+      #   end
+      # end
+      # tempfile = Tempfile.new('note-project')
+      # %x{find bin lib -type f >#{tempfile.path}}
+      # system('vim -O "%s" "bin/%s"' % [tempfile.path, File.basename(task_bin)])   #, task_bin_dir, files.uniq.join(' ')])
+      # tempfile.close
+      # tempfile.unlink
+      CliTasks::ProjectFile.generate(git_dir)
+      Dir.chdir(git_dir)
+      system(format('vim -O "%s" "%s" "%s"', 'project-index', 'bin/note', 'lib/clitasks/commands.rb'))
+      CliTasks::Commands.commit('auto-saving bin/note')
+      return true
+    end
+
+    def process_subcommand
+      return edit_bin if is_edit_bin_subcommand?
+
+      Dir.chdir(CliTasks::Commands.world.path)
+
+      CliTasks.world.use_index = args.shift == '-i' if args.first == '-i'
+
+      case command
+      when 'open'
+        if args.count > 3
+          system('vim', *args.map{|filename| format('%s.md', filename) })
+        else
+          system('vim', '-O', *args.map{|filename| format('%s.md', filename) })
+        end
+        CliTasks::Commands.rebuild
+        return
+      when 'next_filename', 'next'
+        puts CliTasks::Commands.next_filename
+        return
+      when 'index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.index
+        CliTasks::Commands.rebuild
+      when 'update_index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.update_index
+        CliTasks::Commands.rebuild
+      when 'print_index'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.print_index
+        CliTasks::Commands.rebuild
+      when 'save', 's'
+        CliTasks::Commands.save args, $stdin
+        CliTasks::Commands.rebuild
+      when 'add', 'a', 'new', 'n', 'create', 'c', 'import', 'i'
+        CliTasks::Commands.create args, $stdin
+        CliTasks::Commands.rebuild
+      when 'reindex'
+        CliTasks::Commands.reindex
+      when 'rebuild'
+        CliTasks::Commands.rebuild
+      when 'temp', 'scratch'
+        CliTasks::Commands.safe_scratch
+        CliTasks::Commands.rebuild
+      when 'edit'
+        CliTasks::Commands.edit *args
+        CliTasks::Commands.rebuild
+      when 'tags'
+        CliTasks::Commands.rebuild
+        CliTasks::Commands.tags *args
+      when 'search'
+        if args.any?{|arg| arg == '-e' }
+          CliTasks::Commands.edit *args.reject{|arg| arg == '-e' }
+        else
+          ap args: args, splatted: [ *args ]
+          return CliTasks::Commands.search *args
+          CliTasks::Commands.search *args
+        end
+        CliTasks::Commands.rebuild
+      when 'commit'
+        CliTasks::Commands.commit
+        return
+      when 'backup'
+        CliTasks::Commands.backup
+        return
+      when 'tests'
+        label = ->(t) { puts; tt = sprintf("  %s:  ", t); puts tt; puts tt.gsub(/./, ?-); }
+
+#         label.call 'List Tags without Index'
+#         CliTasks.world.use_index = false
+#         puts Benchmark.measure{ CliTasks::Commands.tags }
+
+#         label.call 'List Tags with Index'
+#         CliTasks.world.use_index = true
+#         puts Benchmark.measure{ CliTasks::Commands.tags }
+
+#         label.call 'List EPIC Tag w/o index'
+#         CliTasks.world.use_index = false
+#         puts Benchmark.measure{ CliTasks::Commands.tags 'EPIC' }
+
+#         label.call 'List EPIC Tag w index'
+#         CliTasks.world.use_index = true
+#         puts Benchmark.measure{ CliTasks::Commands.tags 'EPIC' }
+
+        CliTasks::Commands.rebuild
+
+        label.call 'List EPIC Tag w index'
+        CliTasks.world.use_index = true
+        Benchmark.measure{ puts CliTasks::Commands.search(  *%w{ EPIC bea planning } ) }
+
+        label.call 'List EPIC Tag w/o index'
+        CliTasks.world.use_index = false
+        Benchmark.measure{ puts CliTasks::Commands.search(  *%w{ EPIC bea planning } ) }
+      when 'test'
+        return CliTasks::Commands.test args, $stdin
+      when 'list'
+        CliTasks::Commands.list *args
+      else
+        CliTasks::Commands.list *original_args
+      end
+
+      commit_file = File.join(CliTasks::Commands.world.task_path, 'commit_count')
+      IO.write(commit_file, 0) unless File.exist?(commit_file)
+      commit_count = IO.read(commit_file).to_i
+      IO.write(commit_file, commit_count + 1)
+      if commit_count % 10 == 0
+        puts
+        puts "There have been 10 commits since the last auto-backup.  Backup up notes now..."
+        CliTasks::Commands.commit_and_backup
+      else
+        CliTasks::Commands.commit
+      end
+
+    end
+
+  end
+end
+# command = ARGV.shift || 'list'
+
+Hero::NoteCommand.run
+CliTasks::Commands.rebuild
+
+# vim: ft=ruby

@@ -32,8 +32,10 @@ nnoremap <leader>hnd o--- next note ---<cr>
 nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
 nnoremap <leader>hncn o #hero #todo #notes<esc>0i
 
-nnoremap <leader>hnv $:vs <cWORD><cr>
+nnoremap <leader>hno $:e <cWORD><cr>
+nnoremap <leader>hne $:e <cWORD><cr>
 nnoremap <leader>hnh $:sp <cWORD><cr>
+nnoremap <leader>hnv $:vs <cWORD><cr>
 
 let mapleader=','
 

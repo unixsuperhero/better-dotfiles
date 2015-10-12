@@ -1,0 +1,45 @@
+#!/bin/bash
+
+cpick () {
+  git cherry-pick -n $1
+  git commit -m "$(git log --oneline -1 $1 | sed 's/.......[[:space:]]*//')"
+}
+
+opt=$1
+shift
+
+case $opt in
+  ('list'|'which'|'test'|'auto')
+    for a; do echo "arg: $a"; done
+    echo
+    echo "git cherry -v "$@" \| gtac \| sed '/^- /,$d;s/^..//;s/[[:space:]].*//' \| wc -l \| grep -o '[0-9][0-9]*' \| head -1"
+    linecount=$(git cherry -v "$@" | gtac | sed '/^- /,$d;s/^..//;s/[[:space:]].*//' | wc -l | grep -o '[0-9][0-9]*' | head -1)
+    currentbranch=$(git branch | sed -n 's/^[^[:space:]].\([^[:space:]]*\).*/\1/p')
+    echo "line count: $linecount"
+    echo "current branch: $currentbranch"
+    echo
+    echo "git checkout $1"
+    echo "git cherry-pick ${currentbranch}~${linecount}..${currentbranch}"
+    echo "git checkout ${currentbranch}"
+
+    git checkout $1
+    git cherry-pick ${currentbranch}~${linecount}..${currentbranch}
+    git checkout ${currentbranch}
+  ;;
+
+  ('-r'|'--reverse')
+    echo "opt: $opt"
+    for ch in $(for a; do echo $a; done | gtac); do
+      cpick $ch
+    done
+  ;;
+
+  (*)
+    echo "opt: $opt"
+    cpick $opt
+    for ch; do
+      cpick $ch
+    done
+  ;;
+esac
+
