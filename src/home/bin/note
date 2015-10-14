@@ -1457,6 +1457,28 @@ module Hero
       CliTasks.world.use_index = args.shift == '-i' if args.first == '-i'
 
       case command
+      when 'help'
+        {
+          ['open'] => "open a tag's index file",
+          ['next_filename', 'next'] => 'ZZ',
+          ['index'] => 'ZZ',
+          ['update_index'] => 'ZZ',
+          ['print_index'] => 'ZZ',
+          ['save', 's'] => 'ZZ',
+          ['add', 'a', 'new', 'n', 'create', 'c', 'import', 'i'] => 'ZZ',
+          ['reindex'] => 'ZZ',
+          ['rebuild'] => 'ZZ',
+          ['temp', 'scratch'] => 'ZZ',
+          ['edit'] => 'ZZ',
+          ['tags'] => 'ZZ',
+          ['search'] => 'ZZ',
+          ['commit'] => 'ZZ',
+          ['backup'] => 'ZZ',
+          ['tests'] => 'ZZ',
+          ['test'] => 'ZZ',
+          ['list'] => 'ZZ',
+        }
+
       when 'open'
         if args.count > 3
           system('vim', *args.map{|filename| format('%s.md', filename) })
