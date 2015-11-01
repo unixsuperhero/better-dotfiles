@@ -42,7 +42,7 @@ command! NoMatches call clearmatches()
 command! -range Blist <line1>,<line2>call Bufferlist()
 command! -nargs=0 Mktitle s/^\(\s*\)\(.\{-}\)\s*$/\1[ \2 ]/
 command! -nargs=0 Mkfile s/^\(\s*\)\(.\{-}\)\s*$/\1[[[ \2 ]]]/
-command! -nargs=0 PutRecentFiles call PutRecentFiles()
+" command! -nargs=0 PutRecentFiles call PutRecentFiles()
 " command! -nargs=0 Mkdir call Mkdir()
 command! -nargs=0 FixListSyntax call FixListSyntax()
 command! -nargs=0 Scratch call Scratch()
@@ -55,10 +55,10 @@ command! -nargs=* SwapText call <SID>SwapPatterns(<args>)
 command! -range -nargs=* SwapTextF <line1>,<line2>call <SID>SwapPatterns(<f-args>)
 command! -nargs=* SwapTextQ call <SID>SwapPatterns(<q-args>)
 
-function! PutRecentFiles()
-  r!cat /var/jearsh/env/recent.vim
-  "r!cat /var/jearsh/env/recent.vim | head -15
-endfunction
+" function! PutRecentFiles()
+  " r!cat /var/jearsh/env/recent.vim
+  " " r!cat /var/jearsh/env/recent.vim | head -15
+" endfunction
 
 function! s:SwapPatterns(pattern_a, pattern_b, flags) range
   let pat_a = a:pattern_a

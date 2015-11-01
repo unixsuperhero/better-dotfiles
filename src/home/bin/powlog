@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if test 0 -gt 0
+then
+  tail -f ~/Library/Logs/Pow/apps/.log
+else
+  tail -f ~/Library/Logs/Pow/apps/www.log
+fi

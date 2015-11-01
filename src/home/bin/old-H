@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'h'
+
+H.run
+

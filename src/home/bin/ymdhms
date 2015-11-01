@@ -1,3 +1,69 @@
 #!/bin/bash
 
-date +"%Y%m%d%H%M%S"
+echo
+echo '# DEBUGGING INFO:'
+echo '# ---------------'
+echo
+
+custom_date=''
+test -z $custom_date &&
+  printf 'Custom Date => "%s" HAS zero-length\n' $custom_date ||
+  printf 'Custom Date => "%s" DOES NOT HAVE a zero-length\n' $custom_date
+
+custom_date='1446216972'
+test -z $custom_date &&
+  printf 'Custom Date => "%s" HAS zero-length\n' $custom_date ||
+  printf 'Custom Date => "%s" DOES NOT HAVE a zero-length\n' $custom_date
+
+unset custom_date
+
+test -z $custom_date &&
+  printf 'Custom Date => "%s" HAS zero-length\n' $custom_date ||
+  printf 'Custom Date => "%s" DOES NOT HAVE a zero-length\n' $custom_date
+
+echo
+echo '# ------------------'
+echo '# FINISHED DEBUGGING'
+echo
+
+show_pretty=0
+use_custom_date=0
+
+for arg; do
+  case $arg
+    ('-p'|'--pretty'|'p'|'pretty')
+      show_pretty=1
+      ;;
+
+    (*)
+      use_custom_date=1
+      custom_date="$arg"
+      ;;
+  esac
+done
+
+if test $show_pretty -eq 0 && $use_custom_date -eq 0; then
+  echo 'show pretty AND use custom date are both 0 (zero)'
+  echo
+  date +"%Y%m%d%H%M%S"
+else if test $show_pretty -eq 1 && $use_custom_date -eq 0; then
+  echo '[1,0] == [show pretty, use custom date]'
+  echo
+  date +"%Y-%m-%d %H:%M:%S"
+else if test $show_pretty -eq 0 && $use_custom_date -eq 1; then
+  echo '[0,1] == [show pretty, use custom date]'
+  echo
+  date "$custom_date" +"%Y%m%d%H%M%S"
+else
+  echo '[1,1] == [show pretty, use custom date]'
+  echo
+  date "$custom_date" +"%Y-%m-%d %H:%M:%S"
+fi
+
+# if test $# -gt 0
+# then
+#   date +"%Y-%m-%d %H:%M:%S"
+# else
+#   date +"%Y%m%d%H%M%S"
+# fi
+

@@ -238,3 +238,13 @@ function dev_and_stage () {
     fi
   }
 
+  gsmin () {
+    for a in $(git status -s | sed 's/...//;s/.* -> //'); do
+      test -f $a &&
+        test $(git diff -U0 $a |
+          sed -E '/^[-+][[:space:]]*#/d;/^@@/d;/^[-+]{3} [ab]/d;/^diff --git/d;/^index /d' |
+          wc -l) -gt 0 &&
+            git status -s $a ||
+      true
+    done
+  }

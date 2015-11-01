@@ -46,9 +46,6 @@ module MainCommand
     end
   end
 
-  def deploy_app
-  end
-
   def heroku_command(hcmd)
     cmd = format('heroku %s %s %s %s', hcmd, args.join(' '), app? ? '-a' : '-r', command_name)
     printf "command: %s\n", cmd

@@ -18,16 +18,86 @@ function cm () {
   done
 }
 
-def ()
-{
-  if [[ $SHELL =~ 'zsh' ]]; then
-    whence -vaf "$1" 2>/dev/null
-  else
-    # changed to match shell precendence
-    alias "$1" 2>/dev/null
-    declare -f "$1" 2>/dev/null
-    which -a "$1" 2>/dev/null
-  fi
+# def ()
+# {
+#   if [[ $SHELL =~ 'zsh' ]]; then
+#     whence -vaf "$1" 2>/dev/null
+#   else
+#     # changed to match shell precendence
+#     alias "$1" 2>/dev/null
+#     declare -f "$1" 2>/dev/null
+#     which -a "$1" 2>/dev/null
+#   fi
+# }
+
+edef () {
+  echo
+
+  for a; do
+    h="${a}:"
+    echo "  $h  "
+    echo "--${h//?/-}--"
+
+    if [[ $SHELL =~ 'zsh' ]]; then
+      whence -vaf "$a" 2>/dev/null
+    else
+      # changed to match shell precendence
+      alias "$a" 2>/dev/null
+      declare -f "$a" 2>/dev/null
+      which -a "$a" 2>/dev/null
+    fi
+
+    echo
+
+  done | plain | vim +set\ bt=nofile -
+}
+
+edefsrc () {
+  for a; do
+    h="${a}:"
+    echo "  $h  "
+    echo "--${h//?/-}--"
+
+    egrep -ril '\b'${a}'\b([[:space:]]*[(][)])?' ${HOME}/better-dotfiles/src/zsh
+
+    echo
+
+  done | plain | vim +set\ bt=nofile -
+}
+
+def () {
+  echo
+
+  for a; do
+    h="${a}:"
+    echo "  $h  "
+    echo "--${h//?/-}--"
+
+    if [[ $SHELL =~ 'zsh' ]]; then
+      whence -vaf "$a" 2>/dev/null
+    else
+      # changed to match shell precendence
+      alias "$a" 2>/dev/null
+      declare -f "$a" 2>/dev/null
+      which -a "$a" 2>/dev/null
+    fi
+
+    echo
+
+  done # | plain | vim +set\ bt=nofile -
+}
+
+defsrc () {
+  for a; do
+    h="${a}:"
+    echo "  $h  "
+    echo "--${h//?/-}--"
+
+    egrep -ril '\b'${a}'\b([[:space:]]*[(][)])?' ${HOME}/better-dotfiles/src/zsh
+
+    echo
+
+  done # | plain | vim +set\ bt=nofile -
 }
 
 ff() {

@@ -89,8 +89,8 @@ ca rbmake set mp=ruby\ -c\ %
 ca makerb set mp=ruby\ -c\ %
 ca mset set?<left>
 
-ca man vnew \| set buftype=nofile \| r!man  \| col -b<left><left><left><left><left><left><left><left><left><C-R>=Eatchar('\s')<CR>
-ca pager vnew \| set buftype=nofile \| r! \| col -b<M-b><M-b><M-b><left><C-R>=Eatchar('\s')<CR>
+ca man vnew \| set buftype=nofile \| r!man  \| plain<left><left><left><left><left><left><left><left><C-R>=Eatchar('\s')<CR>
+ca pager vnew \| set buftype=nofile \| r! \| plain<M-b><M-b><M-b><left><C-R>=Eatchar('\s')<CR>
 ca gstatus Gstatus \| wincmd J
 ca gst Gstatus \| wincmd J
 
@@ -138,7 +138,7 @@ ca LS ls
 ca ake make
 ca setpaste set paste!
 ca updatewww %s@^\.\(.*\)$@vim -d $beta\1 $www\1@c
-ca recent PutRecentFiles
+ca recentfiles PutRecentFiles
 
 ca enote vs ~/notes/**/<C-r>=Eatchar('\s')<cr>
 

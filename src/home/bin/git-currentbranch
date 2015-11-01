@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cb=$(git symbolic-ref HEAD)
+echo ${cb#refs/*/}

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+pidfile=/usr/local/var/postgres/postmaster.pid
+
+if ps awwux | ag 'postgresql[/]bin[/]postgres '; then
+  echo 'postgres is running'
+else
+  print 'checking for postmaster.pid...'
+  if test -f $pidfile; then
+    echo 'exists'
+    echo
+    ls -l $pidfile
+    rm /usr/local/var/postgres/postmaster.pid
+    echo '...removed'
+  fi
+fi
+# echo 'postmaster file is located here: /usr/local/var/postgres/postmaster.pid'
+
+# if test -f /usr/local/var/postgres/postmaster.pid; then
+#   echo 'FILE EXISTS: /usr/local/var/postgres/postmaster.pid'
+# else
+#   echo 'FILE DOES NOT EXISTS: /usr/local/var/postgres/postmaster.pid'
+# fi
+
+# ps awwux | ag 'postgres|pg|psql'
+
+# if test $? -eq 0; then
+#   echo 'it looks like postgres is already running'
+
+#   if tmux ls | ag 'servers'; then
+#     echo 'servers session already exists'
+#   else
+#     tmux new -d -s servers
+#   fi
+#   tmux neww -t servers
+#   tmux send-keys -t servers "$(echo 'testing'; echo)"
+#   tmux send-keys -t servers "echo 'a new command hopefully'"
+#   tmux send-keys -t servers '/usr/local/opt/postgresql/bin/postgres -D /usr/local/var/postgres -r /usr/local/var/postgres/server.log'
+
+# else
+
+#   if tmux ls | ag 'servers'; then
+#     echo 'servers session already exists'
+#   else
+#     tmux new -d -s servers
+#   fi
+#   tmux neww -t servers
+#   tmux send-keys -t servers "$(echo 'testing'; echo)"
+#   tmux send-keys -t servers "echo 'a new command hopefully'"
+#   tmux send-keys -t servers '/usr/local/opt/postgresql/bin/postgres -D /usr/local/var/postgres -r /usr/local/var/postgres/server.log'
+
+# fi
+

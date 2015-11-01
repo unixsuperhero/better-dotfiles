@@ -9,7 +9,21 @@ opt=$1
 shift
 
 case $opt in
-  ('list'|'which'|'test'|'auto')
+  ('list'|'which'|'test'|'dry')
+    for a; do echo "arg: $a"; done
+    echo
+    echo "git cherry -v "$@" \| gtac \| sed '/^- /,$d;s/^..//;s/[[:space:]].*//' \| wc -l \| grep -o '[0-9][0-9]*' \| head -1"
+    linecount=$(git cherry -v "$@" | gtac | sed '/^- /,$d;s/^..//;s/[[:space:]].*//' | wc -l | grep -o '[0-9][0-9]*' | head -1)
+    currentbranch=$(git branch | sed -n 's/^[^[:space:]].\([^[:space:]]*\).*/\1/p')
+    echo "line count: $linecount"
+    echo "current branch: $currentbranch"
+    echo
+    echo "git checkout $1"
+    echo "git cherry-pick ${currentbranch}~${linecount}..${currentbranch}"
+    echo "git checkout ${currentbranch}"
+    ;;
+
+  ('auto')
     for a; do echo "arg: $a"; done
     echo
     echo "git cherry -v "$@" \| gtac \| sed '/^- /,$d;s/^..//;s/[[:space:]].*//' \| wc -l \| grep -o '[0-9][0-9]*' \| head -1"

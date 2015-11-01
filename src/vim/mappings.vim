@@ -35,6 +35,10 @@ nmap com :set modifiable!<cr>
 " leader mappings
 nmap <leader>; :
 nmap <leader><leader> :
+
+vmap <leader>; :
+vmap <leader><leader> :
+
 nmap <leader>w :w<cr>
 nmap <leader>e :e<cr>
 nmap <leader>q :q<cr>

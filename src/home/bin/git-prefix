@@ -16,6 +16,14 @@ module BranchPrefix
 
     parse_options
 
+    if options.copy_branch
+      return copy_branch
+    end
+
+    if options.make_rebase_branch
+      return make_rebase_branch
+    end
+
     if options.print_without_prefix
       return branch_name
     end
@@ -55,6 +63,14 @@ module BranchPrefix
 
   def parse_options
     args.options { |opts|
+      opts.on('-r', '--rebase', 'make a rebase branch') do
+        options.make_rebase_branch = true
+      end
+
+      opts.on('-m', '--make', 'copy the current branch into one with the new prefix') do
+        options.copy_branch = true
+      end
+
       opts.on('-s', '--switch', 'clone current branch with new prefix and switch to it') do
         options.checkout = true
       end
@@ -94,6 +110,8 @@ module BranchPrefix
   def options
     @options ||= OpenStruct.new.tap do |opts|
       opts.checkout = false
+      opts.copy_branch = false
+      opts.make_rebase_branch = false
       opts.list_branches = false
       opts.delete_merged_branch = false
       opts.force_delete_branch = false
@@ -133,6 +151,18 @@ module BranchPrefix
     else
       current_branch
     end
+  end
+
+  def copy_branch
+    if args.count > 1
+      system(format("git branch %s/#{branch_name} %s", args.shift, args.join(' ')))
+    else
+      system(format("git branch %s/#{branch_name}", args.shift))
+    end
+  end
+
+  def make_rebase_branch
+    @make_rebase_branch ||= current_ref.sub(/refs\/heads\//i, '')
   end
 end
 
