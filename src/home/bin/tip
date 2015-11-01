@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+❯ task save "maintain an archive of all the cli tools i've made, records of everytime i've ran it, when and with what args, periodically remind myself of what tools are available and how long it has been since last using it #bash/todo #hero/todo #tools/util-archive"
+/Users/macbookpro/hero
+/tasks/src/144642111200.md
 require 'awesome_print'
 
 require 'fileutils'
@@ -76,7 +79,7 @@ module CliTasks
     end
 
     def git_root
-      `git rev-parse --show-toplevel`.tap do |root|
+      `git rev-parse --show-toplevel`.chomp.tap do |root|
         return $? == 0 ? root : Dir.pwd
       end
     end
