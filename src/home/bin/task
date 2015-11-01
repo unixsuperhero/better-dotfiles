@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-❯ task save "maintain an archive of all the cli tools i've made, records of everytime i've ran it, when and with what args, periodically remind myself of what tools are available and how long it has been since last using it #bash/todo #hero/todo #tools/util-archive"
-/Users/macbookpro/hero
-/tasks/src/144642111200.md
 require 'awesome_print'
 
 require 'fileutils'
@@ -1468,7 +1465,7 @@ module Hero
       case command
       when 'open'
         if args.count > 3
-          system('vim', *args.map{|filename| format('%s.md', filename) })
+          system('vim', *args.map{|filename| format('src/%s.md', filename) })
         else
           system('vim', '-O', *args.map{|filename| format('%s.md', filename) })
         end
