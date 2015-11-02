@@ -526,14 +526,14 @@ module CliTasks
       world.tags.each do |tag,stories|
         File.open(all_index, 'a') do |file|
           file.puts format('%s.md', tag)
-        end
+        end if opts.fetch(:all, false)
 
         new_tag = true
         stories.each do |story|
 
           create_tag_link(nil, tag, story)
-          next unless opts.fetch(:all, false)
-          create_tag_link(nil, 'all', story, new_tag ? tag : nil)
+          # next unless opts.fetch(:all, false)
+          # create_tag_link(nil, 'all', story, new_tag ? tag : nil)
 
           new_tag = false
         end
