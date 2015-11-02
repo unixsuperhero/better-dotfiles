@@ -546,7 +546,7 @@ module CliTasks
       all_index = File.join(world.index_path, 'all.md')
       FileUtils.rm(all_index) if File.exist?(all_index)
       File.open(all_index, 'w+') do |file|
-        file.puts format('base_path: %s', base_path)
+        file.puts format('dirname: %s', base_path)
         file.puts ''
       end
 
@@ -649,7 +649,7 @@ module CliTasks
 
       File.open(File.expand_path(dest), 'a') do |f|
         if newfile
-          f.puts format('base_path: %s', world.path)
+          f.puts format('dirname: %s', world.path)
           f.puts ''
         end
 
