@@ -543,13 +543,12 @@ module CliTasks
     end
 
     def by_tag(opts={ all: true })
-      world.stories.each do |story|
-        next unless story.tags.any?
-        create_tag_link(nil, 'all', story, 'No Tag')
-      end
-
       all_index = File.join(world.index_path, 'all.md')
       FileUtils.rm(all_index)
+      File.open(all_index 'w+') do |file|
+        file.puts format('base_path: %s', base_path)
+        file.puts ''
+      end
 
       last_path = []
       world.tags.each do |tag,stories|
@@ -645,9 +644,14 @@ module CliTasks
       dir = File.dirname(dest)
       FileUtils.mkdir_p(File.expand_path(dir))
 
-      add_heading = ! File.exists?(File.expand_path(dest))
+      newfile = ! File.exists?(File.expand_path(dest))
+      add_heading = subheading || newfile
 
       File.open(File.expand_path(dest), 'a') do |f|
+        if newfile
+          f.puts format('base_path: %s', world.path)
+          f.puts ''
+        end
 
         if subheading
           subheading_text = format(' Tag: %s', subheading)
