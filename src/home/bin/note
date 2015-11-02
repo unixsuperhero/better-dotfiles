@@ -545,7 +545,7 @@ module CliTasks
     def by_tag(opts={ all: true })
       all_index = File.join(world.index_path, 'all.md')
       FileUtils.rm(all_index) if File.exist?(all_index)
-      File.open(all_index 'w+') do |file|
+      File.open(all_index, 'w+') do |file|
         file.puts format('base_path: %s', base_path)
         file.puts ''
       end
