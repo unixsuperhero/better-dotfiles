@@ -325,12 +325,12 @@ module CliTasks
       Story.new StoryReader.new(name, &block)
     end
 
-    def absolute_path
-      File.absolute_path(file)
-    end
-
     def file_path
       Pathname.new(file)
+    end
+
+    def absolute_path
+      File.absolute_path(file)
     end
 
     def relative_path
@@ -955,6 +955,22 @@ module CliTasks
           tn.tag = tag
         end
       end
+    end
+
+    def file_path
+      Pathname.new(file)
+    end
+
+    def absolute_path
+      File.absolute_path(file)
+    end
+
+    def relative_path
+      file_path.relative_path_from(world.path)
+    end
+
+    def relative_to_pwd
+      file_path.relative_path_from(Dir.pwd)
     end
 
     private
