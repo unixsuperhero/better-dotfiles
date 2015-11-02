@@ -466,6 +466,18 @@ module CliTasks
       Runner.run @world.task_path
     end
 
+    def base_path
+      world.path
+    end
+
+    def index_path
+      world.index_path
+    end
+
+    def src_path
+      world.src_path
+    end
+
     def remove_empty_directories
       Dir[ [@path, '/**/*/'].join(?/) ].each do |dir|
         next unless File.directory?(dir)
@@ -523,9 +535,20 @@ module CliTasks
       all_index = File.join(world.index_path, 'all.md')
       FileUtils.rm(all_index)
 
+      last_path = []
       world.tags.each do |tag,stories|
+        this_path = tag.split(?/)
+        path_diff = this_path.drop_while.with_index{|e,i|
+          last_path[i] == e
+        }
+        last_path = this_path
+        indent = '  ' * (this_path.count - path_diff.count)
         File.open(all_index, 'a') do |file|
-          file.puts format('%s.md', tag)
+          path_diff[0..-2].each do |tagdir|
+            file.puts format("%-50s |", format('%s%s', indent, tagdir))
+            indent += '  '
+          end
+          file.puts format("%-50s | 'index/%s.md'", format('%s%s', indent, path_diff.last), tag)
         end if opts.fetch(:all, false)
 
         new_tag = true
@@ -538,6 +561,23 @@ module CliTasks
           new_tag = false
         end
       end
+
+      File.open(all_index, 'a') do |file|
+        file.puts ''
+        file.puts ''
+        file.puts ' Stories With No Tags'
+        file.puts '----------------------'
+        file.puts ''
+
+        world.stories.each do |st|
+          next if st.tags == nil || st.tags.count > 0
+          src = File.expand_path(st.file)
+          file.puts format("%-50s | '%s'", st.short_name, src)
+        end
+
+        file.puts ''
+
+      end if opts.fetch(:all, false)
     end
 
     def by_status
@@ -612,7 +652,7 @@ module CliTasks
         end
 
         src = Pathname.new(File.expand_path(story.file))
-        f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', src.relative_path_from(Pathname.new(File.expand_path(@path))), ?')
+        f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', src.relative_path_from(Pathname.new(File.expand_path(base_path))), ?')
       end
     end
 

@@ -35,11 +35,11 @@ nnoremap <leader>hnd o--- next note ---<cr>
 nnoremap <leader>hncp o #hero #h #todo #projectfile<esc>0i
 nnoremap <leader>hncn o #hero #todo #notes<esc>0i
 
-nnoremap <leader>hno mm0vi'"fy`m:e <c-r>f<cr>
-nnoremap <leader>hne mm0vi'"fy`m:e <c-r>f<cr>
-nnoremap <leader>hnh mm0vi'"fy`m:sp <c-r>f<cr>
+nnoremap <leader>hno mm$F'vi'"fy`m:e <c-r>f<cr>
+nnoremap <leader>hne mm$F'vi'"fy`m:e <c-r>f<cr>
+nnoremap <leader>hnh mm$F'vi'"fy`m:sp <c-r>f<cr>
 " nnoremap <leader>hnv :norm $vT "iy0:vs <c-r>i<cr>
-nnoremap <leader>hnv mm0vi'"fy`m:vs <c-r>f<cr>
+nnoremap <leader>hnv mm$F'vi'"fy`m:vs <c-r>f<cr>
 
 let mapleader=','
 
