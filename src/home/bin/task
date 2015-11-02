@@ -966,7 +966,7 @@ module CliTasks
     end
 
     def relative_path
-      file_path.relative_path_from(world.path)
+      file_path.relative_path_from(CliTasks.world.path)
     end
 
     def relative_to_pwd
