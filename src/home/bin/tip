@@ -966,11 +966,11 @@ module CliTasks
     end
 
     def relative_path
-      file_path.relative_path_from(File.expand_path(CliTasks.world.path))
+      file_path.relative_path_from(Pathname.new(CliTasks.world.path))
     end
 
     def relative_to_pwd
-      file_path.relative_path_from(File.expand_path(Dir.pwd))
+      file_path.relative_path_from(Pathname.new(Dir.pwd))
     end
 
     private
