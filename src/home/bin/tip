@@ -324,6 +324,22 @@ module CliTasks
     def self.build(name, &block)
       Story.new StoryReader.new(name, &block)
     end
+
+    def absolute_path
+      File.absolute_path(file)
+    end
+
+    def file_path
+      Pathname.new(file)
+    end
+
+    def relative_path
+      file_path.relative_path_from(world.path)
+    end
+
+    def relative_to_pwd
+      file_path.relative_path_from(Dir.pwd)
+    end
   end
 
   def story(name, &block)
@@ -651,8 +667,12 @@ module CliTasks
           f.puts format('-%-80s | -%s-', format('%80s','').gsub(/./,?-), format('%24s','').gsub(/./,?-))
         end
 
-        src = Pathname.new(File.expand_path(story.file))
-        f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', src.relative_path_from(Pathname.new(File.expand_path(base_path))), ?')
+        # src = Pathname.new(File.expand_path(story.file))
+        # f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', src.relative_path_from(Pathname.new(File.expand_path(base_path))), ?')
+
+        f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', story.relative_path, ?')
+        f.puts format(' %-80s |  %s%s%s', story.short_name[0,80], ?', story.absolute_path, ?')
+        f.puts ''
       end
     end
 
