@@ -515,7 +515,19 @@ module CliTasks
     end
 
     def by_tag(opts={ all: true })
+      world.stories.each do |story|
+        next unless story.tags.any?
+        create_tag_link(nil, 'all', story, 'No Tag')
+      end
+
+      all_index = File.join(world.index_path, 'all.md')
+      FileUtils.rm(all_index)
+
       world.tags.each do |tag,stories|
+        File.open(all_index, 'a') do |file|
+          file.puts format('%s.md', tag)
+        end
+
         new_tag = true
         stories.each do |story|
 
@@ -1465,9 +1477,9 @@ module Hero
       case command
       when 'open'
         if args.count > 3
-          system('vim', *args.map{|filename| format('src/%s.md', filename) })
+          system('vim', *args.map{|filename| format('index/%s.md', filename) })
         else
-          system('vim', '-O', *args.map{|filename| format('%s.md', filename) })
+          system('vim', '-O', *args.map{|filename| format('index/%s.md', filename) })
         end
         CliTasks::Commands.rebuild
         return
