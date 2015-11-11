@@ -19,6 +19,8 @@ module MainCommand
     subcommand = args.shift
 
     case subcommand
+    when 'browse', 'web', 'www', 'view'
+      system(format('open "http://%s.herokuapp.com"', app_name))
     when 'generate'
       generate_binstubs
     when 'db','db:migrate','migrate','migrations','dbm'
@@ -110,8 +112,30 @@ module MainCommand
     system(format('git push %s HEAD', remote_name))
   end
 
+  def current_branch
+    `git symbolic-ref HEAD | sed 's/refs.heads.//'`.chomp
+  end
+
+  def checkout(branch)
+    @last_branch = current_branch
+    system("git checkout #{branch}")
+  end
+
+  def last_branch
+    @last_branch || current_branch
+  end
+
+  def deploy_branch
+    format('deploy/%s', remote_name)
+  end
+
   def deploy_app
-    system('git pull --rebase -p %s master', remote_name)
+    checkout deploy_branch
+    system('git pull --rebase origin %s' % deploy_branch)
+    system('git push origin %s' % deploy_branch)
+    system('git push %s %s:master' % [remote_name, current_branch])
+    system('%s migrate' % [__FILE__])
+    checkout last_branch
   end
 
   def generate_binstubs
@@ -123,6 +147,18 @@ module MainCommand
       dest = File.join(path, fn)
       FileUtils.ln(src, dest)
     end
+    print_final_setup_instructions
+  end
+
+  def print_final_setup_instructions
+    puts
+    puts 'To use the binstubs without prefixing them with "stubs/<cmd>" all the'
+    puts 'time, add "./stubs" to your $PATH.  This is usually accomplished by'
+    puts 'adding a line to either your ~/.bashrc or ~/.zshrc that looks similar'
+    puts 'to the one below:'
+    puts
+    puts '  export PATH="./stubs:$PATH"'
+    puts
   end
 
   def command_name

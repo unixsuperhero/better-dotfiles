@@ -12,6 +12,13 @@ case $opt in
   ('list'|'which'|'test'|'dry')
     for a; do echo "arg: $a"; done
     echo
+
+    echo 'Preview'
+    echo '-------'
+    git cherry -v "$@"
+    echo
+    echo
+
     echo "git cherry -v "$@" \| gtac \| sed '/^- /,$d;s/^..//;s/[[:space:]].*//' \| wc -l \| grep -o '[0-9][0-9]*' \| head -1"
     linecount=$(git cherry -v "$@" | gtac | sed '/^- /,$d;s/^..//;s/[[:space:]].*//' | wc -l | grep -o '[0-9][0-9]*' | head -1)
     currentbranch=$(git branch | sed -n 's/^[^[:space:]].\([^[:space:]]*\).*/\1/p')
@@ -27,17 +34,24 @@ case $opt in
     for a; do echo "arg: $a"; done
     echo
     echo "git cherry -v "$@" \| gtac \| sed '/^- /,$d;s/^..//;s/[[:space:]].*//' \| wc -l \| grep -o '[0-9][0-9]*' \| head -1"
+    shas=$(git cherry -v "$@" | gtac | sed '/^- /,$d;s/^..//;s/[[:space:]].*//')
+    printf 'shas => %s\n' $shas
+    fromsha=$(echo "$shas" | tail -1 | ag '\w\w\w\w\w\w\w')
+    tosha=$(echo "$shas" | head -1 | ag '\w\w\w\w\w\w\w')
     linecount=$(git cherry -v "$@" | gtac | sed '/^- /,$d;s/^..//;s/[[:space:]].*//' | wc -l | grep -o '[0-9][0-9]*' | head -1)
     currentbranch=$(git branch | sed -n 's/^[^[:space:]].\([^[:space:]]*\).*/\1/p')
     echo "line count: $linecount"
     echo "current branch: $currentbranch"
     echo
     echo "git checkout $1"
+    echo "git commit --allow-empty -m 'cherry-picking $currentbranch into $@ from $fromsha to $tosha'"
     echo "git cherry-pick ${currentbranch}~${linecount}..${currentbranch}"
     echo "git checkout ${currentbranch}"
 
     git checkout $1
+    git commit --allow-empty -m "^^ cherry-picking $currentbranch into $@ from $fromsha to $tosha ^^"
     git cherry-pick ${currentbranch}~${linecount}..${currentbranch}
+    git commit --allow-empty -m "vv fininshed cherry-picking $currentbranch vv"
     git checkout ${currentbranch}
   ;;
 

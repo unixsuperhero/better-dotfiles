@@ -102,11 +102,30 @@ endfunction
 cabbrev lvf LocalVsOldfile
 
 command! -nargs=+ VsOldfile call VsplitMatchingOldfilePartialFilename(<f-args>)
-function! VsplitMatchingOldfilePartialFilename(pattern, ...)
+function! VsplitMatchingOldfilePartialFilename(...)
+  echom 'argcount (a:count) => "' . a:0 . '"'
+  echom 'all extra args => '
+  let i = 0
+  for earg in a:000
+    let i = i + 1
+    echom '  ' . i . ': '. '"' . earg . '"'
+  endfor
+
   let matching_files = []
+  let add_the_file = 1
 
   for the_oldfile in v:oldfiles
-    if( match(the_oldfile, a:pattern) != -1 )
+    let add_the_file = 1
+
+    for pat in a:000
+      if( add_the_file == 1 )
+        if( match(the_oldfile, pat) == -1 )
+          let add_the_file = 0
+        endif
+      endif
+    endfor
+
+    if( add_the_file == 1 )
       call add(matching_files, the_oldfile)
     endif
   endfor
@@ -121,26 +140,14 @@ function! VsplitMatchingOldfilePartialFilename(pattern, ...)
     let openall_answer = inputlist(['1. Yes', '2. No'])
     if(openall_answer == 1)
       for matching_file in matching_files
-
-        if(exists('a:1') && len(a:1) > 0)
-          echom '[DRY RUN] would have executed: => vs "' . matching_file . '"'
-        else
-          echom 'running command => vs "' . matching_file . '"'
-          exe('vs ' . matching_file)
-        endif
-
+        echom 'running command => vs "' . matching_file . '"'
+        exe('vs ' . matching_file)
       endfor
     endif
   elseif(len(matching_files) >= 1)
     for matching_file in matching_files
-
-      if(exists('a:1') && len(a:1) > 0)
-        echom '[DRY RUN] would have executed: => vs "' . matching_file . '"'
-      else
-        echom 'running command => vs "' . matching_file . '"'
-        exe('vs ' . matching_file)
-      endif
-
+      echom 'running command => vs "' . matching_file . '"'
+      exe('vs ' . matching_file)
     endfor
   else
     return -1

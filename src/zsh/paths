@@ -3,4 +3,5 @@ export PATH=$HOME/bin:$PATH
 export PATH=./stubs:$PATH
 export PATH=./bin:$PATH
 
-  export PATH="$HOME/hero/bin:$PATH"
+export PATH="$HOME/hero/bin:$HOME/hero/bin/projects:$PATH"
+

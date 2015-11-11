@@ -52,3 +52,6 @@ done
 #$HOME/dotfiles/zsh/vim
 
 [[ -f ~/dotfiles/rbenv/patches/zsh/init ]] && source ~/dotfiles/rbenv/patches/zsh/init
+
+rbenv shell --unset
+

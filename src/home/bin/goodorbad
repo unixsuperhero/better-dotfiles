@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export LAST_RETURN_VALUE=$?
+
+test $LAST_RETURN_VALUE -eq 0 &&
+  echo "true" ||
+  echo "false"
+

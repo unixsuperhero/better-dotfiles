@@ -35,7 +35,7 @@ pomodoro () {
     [[ $min -lt 4 && $min -ne 1 ]] && say -v Alex "$min minutes left" &
     [[ $min -eq 1 ]] && say -v Alex "$min minute left" &
 
-    pomo_runner echo "$min minutes left"
+    # pomo_runner echo "$min minutes left"
 
     echo -n "$(printf "%02d" $min) => "
 
