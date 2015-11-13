@@ -1,0 +1,42 @@
+[[ "$-" != *i* ]] && return
+
+# base
+# ----
+
+alias ll="ls -l"
+alias lld="ls -ld"
+
+alias senv="source ~/.zshrc"
+alias sbash="source ~/.zshrc"
+
+alias eenv="vim ~/.*rc"
+alias ebash="vim ~/.*rc"
+
+# git
+# ---
+
+alias g=git
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias gco="git co"
+alias gp="git push"
+alias gpr="git pull --rebase"
+alias gst="git status -s"
+
+alias glod="git log --oneline --decorate"
+alias glog="git log --oneline --decorate --name-status"
+alias glodg="git log --oneline --decorate --graph"
+
+alias glodd="git log --oneline --decorate -8"
+alias glogg="git log --oneline --decorate --name-status -8"
+
+alias grv="git remote -v"
+
+function gs() {
+  if [[ $# -gt 0 ]]; then
+    git st | sed 's/^...//;s/.* -> //' | egrep -i "$@"
+  else
+    git st | sed 's/^...//;s/.* -> //'
+  fi
+}
+
