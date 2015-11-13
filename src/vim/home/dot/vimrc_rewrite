@@ -1,0 +1,107 @@
+
+" Special Features
+
+syntax on
+filetype plugin indent on
+
+" -----------------------------------------------
+
+" Options
+
+"" Toggle Options
+
+""" Turn On
+set incsearch
+set ignorecase
+set smartcase
+
+set hidden
+set ruler
+set number
+set splitright
+set splitbelow
+set visualbell
+set wildmenu
+set linebreak
+
+set showmatch
+set matchtime=2
+
+set modeline
+set modelines=5
+
+""" Turn Off
+set nohlsearch
+set nowrap
+set nolist
+
+"" Tabs vs. Spaces
+
+set expandtab
+set shiftround
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
+
+""" Use = as a calculator
+set equalprg=bc
+
+""" Options with Values
+
+set enc=utf-8                                     " Use UTF-8 as the default buffer encoding
+set backspace=indent,eol,start                    " Allow backspacing over everything
+set nrformats=octal,hex,alpha                     " Enable CTRL-A/CTRL-X to work on octal and hex numbers, as well as characters
+set diffopt=filler,iwhite,vertical
+set switchbuf=useopen,split
+set history=1000                                  " Remember up to 1000 'colon' commmands and search patterns
+set mouse=a
+
+" -----------------------------------------------
+
+" Keyboard Mappings
+
+"" Leader Key => Spacebar
+let mapleader=' '
+
+"" Normal Mode
+nmap <leader><leader> :
+vmap <leader><leader> :
+nmap <leader>w :w<cr>
+nmap <leader>q :q<cr>
+nmap <leader>Q :q!<cr>
+
+nmap <leader>l :ls<cr>
+nmap <leader>b :ls<cr>:b<space>
+
+nmap gf :vert wincmd f<cr>
+
+""" Toggle Options
+
+nmap <leader>ow :set wrap!<cr>
+nmap <leader>ol :set list!<cr>
+nmap <leader>os :set spell!<cr>
+nmap <leader>op :set paste!<cr>
+nmap <leader>oh :set hlsearch!<cr>
+
+nmap <leader>oow :set wrap?<cr>
+nmap <leader>ool :set list?<cr>
+nmap <leader>oos :set spell?<cr>
+nmap <leader>oop :set paste?<cr>
+nmap <leader>ooh :set hlsearch?<cr>
+
+"" Visual Mode
+vmap <leader><leader> :
+
+" -----------------------------------------------
+
+" Abbreviations
+
+"" Command-Mode
+
+cabbrev sothis so %
+
+cabbrev this %
+cabbrev thish %:h
+cabbrev thist %:t
+cabbrev thisp %:p
+
