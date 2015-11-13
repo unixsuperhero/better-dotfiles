@@ -1,0 +1,23 @@
+project: 'copley'
+start_file:
+  template: 'hero/start.erb'
+  files:
+    defer:
+      literal:
+        - 'app/assets'
+        - 'gif'
+        - 'ico'
+        - 'jpg'
+        - 'png'
+        - 'svg'
+        - 'swf'
+        - 'ttf'
+        - 'woff'
+        - 'woff2'
+    exclude:
+        regex:
+        literal:
+# custom_subcommands:
+#   tmux: 'tmux new -s {{project_name}} -c {{project_directory}}'
+#   migrate: 'rake db:migrate'
+#   deploy: 'git push production master'
