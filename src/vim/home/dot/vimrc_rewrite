@@ -24,6 +24,21 @@ set visualbell
 set wildmenu
 set linebreak
 
+""" Turn Off
+set nohlsearch
+set nowrap
+set nolist
+
+"" Toggles With Additional Settings
+
+if ! isdirectory(expand('~/.vimtmp'))
+  echom expand('~/.vimtmp') . ' ' . 'does not exist'
+  exe("call mkdir(expand('~/.vimtmp'))")
+endif
+
+set undofile
+set undodir=~/.vimtmp//
+
 set showmatch
 set matchtime=2
 
@@ -42,6 +57,8 @@ set shiftround
 set tabstop=2
 set softtabstop=2
 set shiftwidth=2
+
+set shiftround
 
 """ Use = as a calculator
 set equalprg=bc
@@ -72,6 +89,8 @@ nmap <leader>Q :q!<cr>
 
 nmap <leader>l :ls<cr>
 nmap <leader>b :ls<cr>:b<space>
+
+nmap <leader>1 :!
 
 nmap gf :vert wincmd f<cr>
 
